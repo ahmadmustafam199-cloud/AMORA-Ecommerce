@@ -1,0 +1,4 @@
+node_modules/
+
+# Environment variables (API keys, DB URIs, secret keys)
+.env
