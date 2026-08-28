@@ -12,8 +12,6 @@ const reviewRoutes = require("./routes/reviewRoutes");
 
 const app = express();
 
-const PORT = process.env.PORT || 5000;
-
 // =====================================================
 // UPLOAD DIRECTORY (Local fallback)
 // =====================================================
@@ -24,71 +22,62 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 // =====================================================
-// MIDDLEWARE
+// MIDDLEWARE (CORS & Body Parsers)
 // =====================================================
-
-// Permitted origins (Aap ka Vercel Frontend aur Localhost dono)
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://amora-ecommerce.vercel.app" // Apne exact Vercel frontend link se verify kar lein
-];
-
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-        callback(null, true);
-      } else {
-        callback(null, true); // Production issues se bachne ke liye baqi bhi allow karta hai
-      }
-    },
-    credentials: true,
-  })
-);
+app.use(cors({
+  origin: "*", // Sab origins allow karta hai (Cross-Origin errors se bachne ke liye)
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+}));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// =====================================================
-// SERVE UPLOADED IMAGES
-// =====================================================
+// Serve uploaded static files
 app.use("/uploads", express.static(uploadDir));
 
 // =====================================================
-// MONGODB CONNECTION MIDDLEWARE (For Vercel Serverless)
+// MONGODB CONNECTION (Serverless Optimized)
 // =====================================================
-let isConnected = false;
+let cachedDb = null;
 
 const connectDB = async () => {
-  if (isConnected) return;
+  if (cachedDb && mongoose.connection.readyState === 1) {
+    return cachedDb;
+  }
 
   try {
-    const db = await mongoose.connect(process.env.MONGO_URI || process.env.MONGODB_URI);
-    isConnected = db.connections[0].readyState;
+    const db = await mongoose.connect(process.env.MONGO_URI || process.env.MONGODB_URI, {
+      serverSelectionTimeoutMS: 5000,
+    });
+    cachedDb = db;
     console.log("MongoDB Connected Successfully");
+    return cachedDb;
   } catch (error) {
     console.error("MongoDB Connection Error:", error.message);
+    throw error;
   }
 };
 
 app.use(async (req, res, next) => {
-  await connectDB();
-  next();
-});
-
-// =====================================================
-// HOME ROUTE
-// =====================================================
-app.get("/", (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: "E-Commerce Admin API is running on Vercel",
-  });
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Database connection failed" });
+  }
 });
 
 // =====================================================
 // API ROUTES
 // =====================================================
+app.get("/", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "AMORA E-Commerce API is running on Vercel",
+  });
+});
+
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/reviews", reviewRoutes);
@@ -108,19 +97,19 @@ app.use((req, res) => {
 // =====================================================
 app.use((error, req, res, next) => {
   console.error("Server Error:", error);
-
   res.status(500).json({
     success: false,
     message: error.message || "Internal Server Error",
   });
 });
 
-// Local Development ke liye server listen karega
-if (process.env.NODE_ENV !== "production") {
+// Local dev Server
+if (require.main === module) {
+  const PORT = process.env.PORT || 5000;
   app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });
 }
 
-// Vercel serverless function Export
+// Serverless Handler Export
 module.exports = app;
