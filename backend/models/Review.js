@@ -13,6 +13,7 @@ const reviewSchema = new mongoose.Schema(
       required: true,
       trim: true,
       lowercase: true,
+
       match: [
         /^[a-zA-Z0-9._%+-]+@gmail\.com$/,
         "Please enter a valid Gmail address",
@@ -23,6 +24,7 @@ const reviewSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+
       match: [
         /^03[0-9]{9}$/,
         "Please enter a valid Pakistani phone number",
@@ -49,4 +51,7 @@ const reviewSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("Review", reviewSchema);
+module.exports = mongoose.model(
+  "Review",
+  reviewSchema
+);

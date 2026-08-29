@@ -2,39 +2,75 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
-const uploadDir = path.join(__dirname, "../uploads");
+const uploadDir = path.join(
+  __dirname,
+  "../uploads"
+);
 
+// Create uploads directory
 if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
+  fs.mkdirSync(uploadDir, {
+    recursive: true,
+  });
 }
 
+// =====================================================
+// STORAGE
+// =====================================================
+
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
+  destination: (req, file, cb) => {
     cb(null, uploadDir);
   },
 
-  filename: function (req, file, cb) {
+  filename: (req, file, cb) => {
+    const extension = path.extname(
+      file.originalname
+    );
+
     const uniqueName =
       Date.now() +
       "-" +
       Math.round(Math.random() * 1e9) +
-      path.extname(file.originalname);
+      extension.toLowerCase();
 
     cb(null, uniqueName);
   },
 });
 
+// =====================================================
+// FILE FILTER
+// =====================================================
+
 const fileFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith("image/")) {
+  const allowedTypes = [
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "image/webp",
+    "image/gif",
+  ];
+
+  if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error("Only image files are allowed"), false);
+    cb(
+      new Error(
+        "Only JPG, PNG, WEBP and GIF images are allowed"
+      ),
+      false
+    );
   }
 };
+
+// =====================================================
+// MULTER
+// =====================================================
 
 const upload = multer({
   storage,
   fileFilter,
+
   limits: {
     files: 7,
     fileSize: 5 * 1024 * 1024,

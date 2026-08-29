@@ -6,85 +6,196 @@ const cors = require("cors");
 const path = require("path");
 const fs = require("fs");
 
-const orderRoutes = require("./routes/orderRoutes");
-const productRoutes = require("./routes/productRoutes");
-const reviewRoutes = require("./routes/reviewRoutes");
+// =====================================================
+// ROUTES
+// =====================================================
+
+const productRoutes = require(
+  "./routes/productRoutes"
+);
+
+const orderRoutes = require(
+  "./routes/orderRoutes"
+);
+
+const reviewRoutes = require(
+  "./routes/reviewRoutes"
+);
+
+// =====================================================
+// APP
+// =====================================================
 
 const app = express();
 
 // =====================================================
-// UPLOAD DIRECTORY (Local fallback)
+// UPLOAD DIRECTORY
 // =====================================================
-const uploadDir = path.join(__dirname, "uploads");
+
+const uploadDir = path.join(
+  __dirname,
+  "uploads"
+);
 
 if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
+  fs.mkdirSync(uploadDir, {
+    recursive: true,
+  });
 }
 
 // =====================================================
-// MIDDLEWARE (CORS & Body Parsers)
+// CORS
 // =====================================================
-app.use(cors({
-  origin: "*", // Sab origins allow karta hai (Cross-Origin errors se bachne ke liye)
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
-}));
+
+app.use(
+  cors({
+    origin: true,
+    credentials: false,
+
+    methods: [
+      "GET",
+      "POST",
+      "PUT",
+      "DELETE",
+      "OPTIONS",
+    ],
+
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+    ],
+  })
+);
+
+// =====================================================
+// BODY PARSER
+// =====================================================
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-// Serve uploaded static files
-app.use("/uploads", express.static(uploadDir));
+app.use(
+  express.urlencoded({
+    extended: true,
+  })
+);
 
 // =====================================================
-// MONGODB CONNECTION (Serverless Optimized)
+// STATIC UPLOADS
 // =====================================================
+
+app.use(
+  "/uploads",
+  express.static(uploadDir)
+);
+
+// =====================================================
+// MONGODB
+// =====================================================
+
 let cachedDb = null;
 
 const connectDB = async () => {
-  if (cachedDb && mongoose.connection.readyState === 1) {
+  if (
+    cachedDb &&
+    mongoose.connection.readyState === 1
+  ) {
     return cachedDb;
   }
 
+  const mongoURI =
+    process.env.MONGO_URI ||
+    process.env.MONGODB_URI;
+
+  if (!mongoURI) {
+    throw new Error(
+      "MONGO_URI is missing from environment variables"
+    );
+  }
+
   try {
-    const db = await mongoose.connect(process.env.MONGO_URI || process.env.MONGODB_URI, {
-      serverSelectionTimeoutMS: 5000,
-    });
+    const db = await mongoose.connect(
+      mongoURI,
+      {
+        serverSelectionTimeoutMS: 10000,
+      }
+    );
+
     cachedDb = db;
-    console.log("MongoDB Connected Successfully");
+
+    console.log(
+      "MongoDB Connected Successfully"
+    );
+
     return cachedDb;
   } catch (error) {
-    console.error("MongoDB Connection Error:", error.message);
+    cachedDb = null;
+
+    console.error(
+      "MongoDB Connection Error:",
+      error.message
+    );
+
     throw error;
   }
 };
+
+// =====================================================
+// DATABASE MIDDLEWARE
+// =====================================================
 
 app.use(async (req, res, next) => {
   try {
     await connectDB();
     next();
-  } catch (err) {
-    res.status(500).json({ success: false, message: "Database connection failed" });
+  } catch (error) {
+    console.error(
+      "DATABASE MIDDLEWARE ERROR:",
+      error.message
+    );
+
+    res.status(500).json({
+      success: false,
+      message:
+        "Database connection failed",
+    });
   }
+});
+
+// =====================================================
+// HOME
+// =====================================================
+
+app.get("/", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message:
+      "AMORA E-Commerce API is running",
+  });
 });
 
 // =====================================================
 // API ROUTES
 // =====================================================
-app.get("/", (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: "AMORA E-Commerce API is running on Vercel",
-  });
-});
 
-app.use("/api/products", productRoutes);
-app.use("/api/orders", orderRoutes);
-app.use("/api/reviews", reviewRoutes);
+app.use(
+  "/api/products",
+  productRoutes
+);
+
+app.use(
+  "/api/orders",
+  orderRoutes
+);
+
+app.use(
+  "/api/reviews",
+  reviewRoutes
+);
 
 // =====================================================
-// 404 ROUTE
+// 404
 // =====================================================
+
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -95,21 +206,40 @@ app.use((req, res) => {
 // =====================================================
 // ERROR HANDLER
 // =====================================================
-app.use((error, req, res, next) => {
-  console.error("Server Error:", error);
-  res.status(500).json({
-    success: false,
-    message: error.message || "Internal Server Error",
-  });
-});
 
-// Local dev Server
+app.use(
+  (error, req, res, next) => {
+    console.error(
+      "SERVER ERROR:",
+      error
+    );
+
+    res.status(500).json({
+      success: false,
+      message:
+        error.message ||
+        "Internal Server Error",
+    });
+  }
+);
+
+// =====================================================
+// LOCAL SERVER
+// =====================================================
+
 if (require.main === module) {
-  const PORT = process.env.PORT || 5000;
+  const PORT =
+    process.env.PORT || 5000;
+
   app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(
+      `Server running on http://localhost:${PORT}`
+    );
   });
 }
 
-// Serverless Handler Export
+// =====================================================
+// VERCEL
+// =====================================================
+
 module.exports = app;

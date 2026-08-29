@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 
-
 import {
   Search,
   ChevronDown,
@@ -17,31 +16,31 @@ import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
 import ProductTable from "./ProductTable";
 
+const API_BASE_URL = "https://amora-backend-lake.vercel.app";
+
 function AllProducts() {
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
 
-  // Edit / View
   const [editProduct, setEditProduct] = useState(null);
   const [viewProduct, setViewProduct] = useState(null);
 
-  // Edit Form States
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [editCategory, setEditCategory] = useState("");
   const [price, setPrice] = useState("");
   const [stock, setStock] = useState("");
 
-  // =====================================================
-  // GET ALL PRODUCTS
-  // =====================================================
+  // ==========================================
+  // GET PRODUCTS
+  // ==========================================
 
   useEffect(() => {
     const getProducts = async () => {
       try {
         const response = await fetch(
-          "http://localhost:5000/api/products"
+          `${API_BASE_URL}/api/products`
         );
 
         if (!response.ok) {
@@ -50,7 +49,6 @@ function AllProducts() {
 
         const data = await response.json();
 
-        // Handle both array and object API responses
         if (Array.isArray(data)) {
           setProducts(data);
         } else if (Array.isArray(data.products)) {
@@ -58,6 +56,7 @@ function AllProducts() {
         } else {
           setProducts([]);
         }
+
       } catch (error) {
         console.error("Products Error:", error);
         setProducts([]);
@@ -67,9 +66,9 @@ function AllProducts() {
     getProducts();
   }, []);
 
-  // =====================================================
+  // ==========================================
   // DELETE PRODUCT
-  // =====================================================
+  // ==========================================
 
   const deleteProduct = async (id) => {
     const confirmDelete = window.confirm(
@@ -80,14 +79,18 @@ function AllProducts() {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/products/${id}`,
+        `${API_BASE_URL}/api/products/${id}`,
         {
           method: "DELETE",
         }
       );
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error("Delete failed");
+        throw new Error(
+          data.message || "Delete failed"
+        );
       }
 
       setProducts((prev) =>
@@ -98,29 +101,36 @@ function AllProducts() {
       );
 
       alert("Product deleted successfully!");
+
     } catch (error) {
-      console.log("Delete Error:", error);
-      alert("Product delete nahi hua.");
+      console.error("Delete Error:", error);
+
+      alert(
+        error.message ||
+          "Product delete nahi hua."
+      );
     }
   };
 
-  // =====================================================
-  // EDIT BUTTON
-  // =====================================================
+  // ==========================================
+  // EDIT
+  // ==========================================
 
   const handleEdit = (product) => {
     setEditProduct(product);
 
     setName(product.name || "");
     setDescription(product.description || "");
-    setEditCategory(product.category || "Electronics");
+    setEditCategory(
+      product.category || "Electronics"
+    );
     setPrice(product.price || "");
     setStock(product.stock || "");
   };
 
-  // =====================================================
+  // ==========================================
   // UPDATE PRODUCT
-  // =====================================================
+  // ==========================================
 
   const handleUpdate = async (e) => {
     e.preventDefault();
@@ -132,7 +142,7 @@ function AllProducts() {
         editProduct._id || editProduct.id;
 
       const response = await fetch(
-        `http://localhost:5000/api/products/${productId}`,
+        `${API_BASE_URL}/api/products/${productId}`,
         {
           method: "PUT",
           headers: {
@@ -142,8 +152,8 @@ function AllProducts() {
             name,
             description,
             category: editCategory,
-            price,
-            stock,
+            price: Number(price),
+            stock: Number(stock),
           }),
         }
       );
@@ -156,7 +166,8 @@ function AllProducts() {
         );
       }
 
-      const updatedProduct = data.product;
+      const updatedProduct =
+        data.product || data;
 
       setProducts((prev) =>
         prev.map((product) =>
@@ -169,42 +180,73 @@ function AllProducts() {
       setEditProduct(null);
 
       alert("Product updated successfully!");
+
     } catch (error) {
-      console.log("Update Error:", error);
-      alert("Product update nahi hua.");
+      console.error("Update Error:", error);
+
+      alert(
+        error.message ||
+          "Product update nahi hua."
+      );
     }
   };
 
-  // =====================================================
-  // VIEW PRODUCT
-  // =====================================================
+  // ==========================================
+  // VIEW
+  // ==========================================
 
   const handleView = (product) => {
     setViewProduct(product);
   };
 
-  // =====================================================
+  // ==========================================
+  // IMAGE URL HELPER
+  // ==========================================
+
+  const getImageUrl = (image) => {
+    if (!image) return "";
+
+    if (
+      image.startsWith("http://") ||
+      image.startsWith("https://")
+    ) {
+      return image;
+    }
+
+    return `${API_BASE_URL}${
+      image.startsWith("/") ? image : `/${image}`
+    }`;
+  };
+
+  // ==========================================
   // FILTER
-  // =====================================================
+  // ==========================================
 
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
+
+      const productName =
+        product.name || "";
+
       const matchesSearch =
-        product.name
-          ?.toLowerCase()
+        productName
+          .toLowerCase()
           .includes(search.toLowerCase());
 
       const matchesCategory =
         category === "All" ||
         product.category === category;
 
-      return matchesSearch && matchesCategory;
+      return (
+        matchesSearch &&
+        matchesCategory
+      );
     });
   }, [products, search, category]);
 
-  // =====================================================
+  // ==========================================
   // COUNTS
-  // =====================================================
+  // ==========================================
 
   const totalProducts = products.length;
 
@@ -218,9 +260,9 @@ function AllProducts() {
       product.category === "Sports"
   ).length;
 
-  // =====================================================
+  // ==========================================
   // UI
-  // =====================================================
+  // ==========================================
 
   return (
     <div className="min-h-screen bg-[#f7f9fc]">
@@ -229,103 +271,107 @@ function AllProducts() {
 
       <Navbar />
 
-      {/* MAIN */}
-      <main className="ml-50 ">
+      <main className="ml-50">
 
         <div className="p-8">
 
           {/* HEADING */}
+
           <div className="mb-3">
 
             <h1 className="text-[18px] font-bold text-slate-900">
               All Products
             </h1>
 
-            <p className="m text-[14px] text-slate-500">
+            <p className="text-[14px] text-slate-500">
               Manage and view all products in your store
             </p>
 
           </div>
 
-          {/* =====================================================
-              STATS
-          ===================================================== */}
+          {/* STATS */}
 
           <div className="mb-2.5 grid grid-cols-4 gap-7">
 
-  {/* TOTAL PRODUCTS */}
-  <div className="flex w-56 h-20 items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 shadow-sm">
-    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
-      <Package size={18} />
-    </div>
+            <div className="flex h-20 w-56 items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 shadow-sm">
 
-    <div>
-      <p className="text-sm font-semibold text-slate-600">
-        Total Products
-      </p>
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                <Package size={18} />
+              </div>
 
-      <p className="mt-0.5 text-xl font-bold text-slate-900">
-        {totalProducts}
-      </p>
-    </div>
-  </div>
+              <div>
 
-  {/* CLOTHES */}
-  <div className="flex w-56 h-20 items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 shadow-sm">
-    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-green-50 text-green-600">
-      <Shirt size={18} />
-    </div>
+                <p className="text-sm font-semibold text-slate-600">
+                  Total Products
+                </p>
 
-    <div>
-      <p className="text-sm font-semibold text-slate-600">
-        Clothes
-      </p>
+                <p className="mt-0.5 text-xl font-bold text-slate-900">
+                  {totalProducts}
+                </p>
 
-      <p className="mt-0.5 text-xl font-bold text-slate-900">
-        {clothesCount}
-      </p>
-    </div>
-  </div>
+              </div>
+            </div>
 
-  {/* SPORTS */}
-  <div className="flex w-56 h-20 items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 shadow-sm">
-    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-orange-50 text-orange-500">
-      <CircleDot size={18} />
-    </div>
+            <div className="flex h-20 w-56 items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 shadow-sm">
 
-    <div>
-      <p className="text-sm font-semibold text-slate-600">
-        Sports
-      </p>
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-green-50 text-green-600">
+                <Shirt size={18} />
+              </div>
 
-      <p className="mt-0.5 text-xl font-bold text-slate-900">
-        {sportsCount}
-      </p>
-    </div>
-  </div>
+              <div>
 
-  {/* ADD PRODUCT */}
-  <div className="flex w-56 h-20 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 shadow-sm">
-    <Link
-      to="/add-product"
-      className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white transition hover:bg-blue-700"
-    >
-      <Plus size={18} />
-      Add Product
-    </Link>
-  </div>
+                <p className="text-sm font-semibold text-slate-600">
+                  Clothes
+                </p>
 
-</div>
+                <p className="mt-0.5 text-xl font-bold text-slate-900">
+                  {clothesCount}
+                </p>
 
-          {/* =====================================================
-              SEARCH / FILTER
-          ===================================================== */}
+              </div>
+            </div>
 
-          <div className=" rounded-xl  h-20   ">
+            <div className="flex h-20 w-56 items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 shadow-sm">
+
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-orange-50 text-orange-500">
+                <CircleDot size={18} />
+              </div>
+
+              <div>
+
+                <p className="text-sm font-semibold text-slate-600">
+                  Sports
+                </p>
+
+                <p className="mt-0.5 text-xl font-bold text-slate-900">
+                  {sportsCount}
+                </p>
+
+              </div>
+            </div>
+
+            <div className="flex h-20 w-56 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 shadow-sm">
+
+              <Link
+                to="/add-product"
+                className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white transition hover:bg-blue-700"
+              >
+                <Plus size={18} />
+                Add Product
+              </Link>
+
+            </div>
+
+          </div>
+
+          {/* SEARCH */}
+
+          <div className="h-20 rounded-xl">
 
             <div className="flex gap-8">
 
               {/* CATEGORY */}
+
               <div className="relative w-56">
 
                 <select
@@ -369,7 +415,7 @@ function AllProducts() {
                   </option>
 
                   <option value="Computer">
-                   Computer
+                    Computer
                   </option>
 
                   <option value="Beauty">
@@ -384,7 +430,6 @@ function AllProducts() {
                     Bags
                   </option>
 
-                  
                 </select>
 
                 <ChevronDown
@@ -395,6 +440,7 @@ function AllProducts() {
               </div>
 
               {/* SEARCH */}
+
               <div className="relative flex-1">
 
                 <input
@@ -415,12 +461,9 @@ function AllProducts() {
               </div>
 
             </div>
-
           </div>
 
-          {/* =====================================================
-              PRODUCT TABLE
-          ===================================================== */}
+          {/* PRODUCT TABLE */}
 
           <ProductTable
             products={filteredProducts}
@@ -429,9 +472,7 @@ function AllProducts() {
             onView={handleView}
           />
 
-          {/* =====================================================
-              BOTTOM
-          ===================================================== */}
+          {/* BOTTOM */}
 
           <div className="mt-2 flex items-center justify-between rounded-xl border border-slate-200 bg-white px-6 py-4">
 
@@ -482,26 +523,22 @@ function AllProducts() {
               </button>
 
             </div>
-
           </div>
 
         </div>
-
       </main>
 
-      {/* =====================================================
-          EDIT MODAL
-      ===================================================== */}
+      {/* EDIT MODAL */}
 
       {editProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-5">
 
           <div className="w-full max-w-2xl rounded-2xl bg-white p-7 shadow-2xl">
 
-            {/* Modal Header */}
             <div className="mb-6 flex items-center justify-between">
 
               <div>
+
                 <h2 className="text-2xl font-bold text-slate-900">
                   Edit Product
                 </h2>
@@ -509,6 +546,7 @@ function AllProducts() {
                 <p className="mt-1 text-sm text-slate-500">
                   Update product information
                 </p>
+
               </div>
 
               <button
@@ -516,20 +554,18 @@ function AllProducts() {
                 onClick={() =>
                   setEditProduct(null)
                 }
-                className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200"
+                className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200"
               >
                 <X size={20} />
               </button>
 
             </div>
 
-            {/* Form */}
             <form
               onSubmit={handleUpdate}
               className="space-y-5"
             >
 
-              {/* Name */}
               <div>
 
                 <label className="mb-2 block text-sm font-semibold text-slate-700">
@@ -548,7 +584,6 @@ function AllProducts() {
 
               </div>
 
-              {/* Description */}
               <div>
 
                 <label className="mb-2 block text-sm font-semibold text-slate-700">
@@ -566,10 +601,8 @@ function AllProducts() {
 
               </div>
 
-              {/* Category / Price / Stock */}
               <div className="grid grid-cols-3 gap-4">
 
-                {/* Category */}
                 <div>
 
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
@@ -608,11 +641,30 @@ function AllProducts() {
                       Clothes
                     </option>
 
+                    <option value="Accessories">
+                      Accessories
+                    </option>
+
+                    <option value="Computer">
+                      Computer
+                    </option>
+
+                    <option value="Beauty">
+                      Beauty
+                    </option>
+
+                    <option value="Toys">
+                      Toys
+                    </option>
+
+                    <option value="Bags">
+                      Bags
+                    </option>
+
                   </select>
 
                 </div>
 
-                {/* Price */}
                 <div>
 
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
@@ -631,7 +683,6 @@ function AllProducts() {
 
                 </div>
 
-                {/* Stock */}
                 <div>
 
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
@@ -652,7 +703,6 @@ function AllProducts() {
 
               </div>
 
-              {/* Buttons */}
               <div className="flex justify-end gap-3 pt-3">
 
                 <button
@@ -660,14 +710,14 @@ function AllProducts() {
                   onClick={() =>
                     setEditProduct(null)
                   }
-                  className="rounded-lg border border-slate-300 px-6 py-3 font-medium text-slate-700 hover:bg-slate-50"
+                  className="cursor-pointer rounded-lg border border-slate-300 px-6 py-3 font-medium text-slate-700 hover:bg-slate-50"
                 >
                   Cancel
                 </button>
 
                 <button
                   type="submit"
-                  className="rounded-lg bg-blue-600 px-7 py-3 font-semibold text-white hover:bg-blue-700"
+                  className="cursor-pointer rounded-lg bg-blue-600 px-7 py-3 font-semibold text-white hover:bg-blue-700"
                 >
                   Update Product
                 </button>
@@ -675,18 +725,14 @@ function AllProducts() {
               </div>
 
             </form>
-
           </div>
-
         </div>
       )}
 
-      {/* =====================================================
-          VIEW MODAL
-      ===================================================== */}
+      {/* VIEW MODAL */}
 
       {viewProduct && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-5">
 
           <div className="w-full max-w-lg rounded-2xl bg-white p-7 shadow-2xl">
 
@@ -700,7 +746,7 @@ function AllProducts() {
                 onClick={() =>
                   setViewProduct(null)
                 }
-                className="rounded-lg bg-slate-100 px-4 py-2"
+                className="cursor-pointer rounded-lg bg-slate-100 px-4 py-2 hover:bg-slate-200"
               >
                 X
               </button>
@@ -709,15 +755,9 @@ function AllProducts() {
 
             {viewProduct.images?.[0] && (
               <img
-                src={
-                  viewProduct.images[0].startsWith("http")
-                    ? viewProduct.images[0]
-                    : `http://localhost:5000${
-                        viewProduct.images[0].startsWith("/")
-                          ? viewProduct.images[0]
-                          : `/${viewProduct.images[0]}`
-                      }`
-                }
+                src={getImageUrl(
+                  viewProduct.images[0]
+                )}
                 alt={viewProduct.name}
                 className="mb-5 h-60 w-full rounded-xl object-cover"
               />
@@ -741,7 +781,9 @@ function AllProducts() {
               <p>
                 <strong>Price:</strong>{" "}
                 Rs.{" "}
-                {Number(viewProduct.price).toLocaleString()}
+                {Number(
+                  viewProduct.price || 0
+                ).toLocaleString()}
               </p>
 
               <p>
@@ -752,7 +794,6 @@ function AllProducts() {
             </div>
 
           </div>
-
         </div>
       )}
 

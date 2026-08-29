@@ -1,4 +1,7 @@
 const express = require("express");
+
+const router = express.Router();
+
 const {
   getProducts,
   getProduct,
@@ -9,19 +12,52 @@ const {
 } = require("../controllers/productController");
 
 const upload = require("../middleware/upload");
-const router = express.Router();
+
+// =====================================================
+// GET ALL
+// =====================================================
 
 router.get("/", getProducts);
-router.get("/category/:category", getProductsByCategory);
+
+// =====================================================
+// GET BY CATEGORY
+// =====================================================
+
+router.get(
+  "/category/:category",
+  getProductsByCategory
+);
+
+// =====================================================
+// GET SINGLE
+// =====================================================
+
 router.get("/:id", getProduct);
 
-// CREATE PRODUCT
-router.post("/", upload.array("images", 10), createProduct);
+// =====================================================
+// CREATE
+// =====================================================
 
-// UPDATE PRODUCT (Images modify karne ke liye)
-router.put("/:id", upload.array("images", 10), updateProduct);
+router.post(
+  "/",
+  upload.array("images", 7),
+  createProduct
+);
 
-// DELETE PRODUCT
+// =====================================================
+// UPDATE
+// =====================================================
+
+router.put(
+  "/:id",
+  upload.array("images", 7),
+  updateProduct
+);
+
+// =====================================================
+// DELETE
+// =====================================================
+
 router.delete("/:id", deleteProduct);
 
 module.exports = router;

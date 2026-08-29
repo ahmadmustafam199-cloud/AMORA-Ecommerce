@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { CreditCard } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import {
+  CreditCard,
   User,
   MapPin,
   Phone,
@@ -10,23 +9,24 @@ import {
   CheckCircle,
   Mail,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useCart } from "./useCart";
+
+const API_URL = "https://amora-backend-lake.vercel.app";
 
 function Checkout() {
   const navigate = useNavigate();
 
-  const {
-    cart,
-    totalPrice,
-    clearCart,
-  } = useCart();
+  const { cart, totalPrice, clearCart } = useCart();
 
- const [formData, setFormData] = useState({
-  customerName: "",
-  customerEmail: "",  
-  address: "",
-  phone: "",
-});
+  const [formData, setFormData] = useState({
+    customerName: "",
+    customerEmail: "",
+    address: "",
+    city: "",
+    phone: "",
+    paymentMethod: "",
+  });
 
   const [loading, setLoading] = useState(false);
 
@@ -80,26 +80,25 @@ function Checkout() {
         };
       });
 
-      const response = await fetch(
-        "http://localhost:5000/api/orders",
-        {
-          method: "POST",
+      const response = await fetch(`${API_URL}/api/orders`, {
+        method: "POST",
 
-          headers: {
-            "Content-Type": "application/json",
-          },
+        headers: {
+          "Content-Type": "application/json",
+        },
 
-         body: JSON.stringify({
-  customerName: formData.customerName,
-  customerEmail: formData.customerEmail, // <- Yeh missing tha
-  address: formData.address,
-  phone: formData.phone,
-  products,
-  deliveryCharges,
-  totalPrice: finalTotal,
-}),
-        }
-      );
+        body: JSON.stringify({
+          customerName: formData.customerName,
+          customerEmail: formData.customerEmail,
+          address: formData.address,
+          city: formData.city,
+          phone: formData.phone,
+          paymentMethod: formData.paymentMethod,
+          products,
+          deliveryCharges,
+          totalPrice: finalTotal,
+        }),
+      });
 
       const data = await response.json();
 
@@ -112,10 +111,10 @@ function Checkout() {
       // Empty cart
       clearCart();
 
-      // Go to success
+      // Go to success page
       navigate("/order-success");
     } catch (error) {
-      console.error(error);
+      console.error("Place Order Error:", error);
 
       alert(
         error.message ||
@@ -133,9 +132,7 @@ function Checkout() {
   if (cart.length === 0) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
-
         <div className="w-full max-w-md rounded-2xl bg-white p-8 text-center shadow-xl">
-
           <ShoppingBag
             size={55}
             className="mx-auto text-gray-300"
@@ -162,21 +159,18 @@ function Checkout() {
               text-white
               transition
               hover:bg-orange-600
-              
+              cursor-pointer
             "
           >
             Continue Shopping
           </button>
-
         </div>
-
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gray-100 px-4 py-10">
-
       <div className="mx-auto max-w-6xl">
 
         {/* Back */}
@@ -195,7 +189,7 @@ function Checkout() {
             hover:text-orange-500
           "
         >
-          <ArrowLeft  size={18} />
+          <ArrowLeft size={18} />
           Back to Cart
         </button>
 
@@ -208,7 +202,6 @@ function Checkout() {
           <div className="lg:col-span-2 rounded-2xl bg-white p-6 shadow-lg">
 
             <div className="mb-6">
-
               <h1 className="text-2xl font-bold text-gray-900">
                 Checkout
               </h1>
@@ -216,7 +209,6 @@ function Checkout() {
               <p className="mt-1 text-sm text-gray-500">
                 Enter your delivery information
               </p>
-
             </div>
 
             <form
@@ -226,13 +218,11 @@ function Checkout() {
 
               {/* Name */}
               <div>
-
                 <label className="mb-2 block text-sm font-semibold text-gray-700">
                   Full Name
                 </label>
 
                 <div className="relative">
-
                   <User
                     size={18}
                     className="
@@ -267,19 +257,16 @@ function Checkout() {
                       focus:bg-white
                     "
                   />
-
                 </div>
-
               </div>
 
+              {/* Email */}
               <div>
-
                 <label className="mb-2 block text-sm font-semibold text-gray-700">
                   Email
                 </label>
 
                 <div className="relative">
-
                   <Mail
                     size={18}
                     className="
@@ -291,30 +278,39 @@ function Checkout() {
                     "
                   />
 
-                 <input
-                  type="email"
-                  name="customerEmail"
-                  value={formData.customerEmail}
-                  onChange={handleChange}
-                  placeholder="Enter Email"
-                  required
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 pl-10 pr-4 text-sm outline-none transition focus:border-orange-500 focus:bg-white"
-                 />
-
+                  <input
+                    type="email"
+                    name="customerEmail"
+                    value={formData.customerEmail}
+                    onChange={handleChange}
+                    placeholder="Enter your email"
+                    required
+                    className="
+                      w-full
+                      rounded-xl
+                      border
+                      border-gray-200
+                      bg-gray-50
+                      py-3
+                      pl-10
+                      pr-4
+                      text-sm
+                      outline-none
+                      transition
+                      focus:border-orange-500
+                      focus:bg-white
+                    "
+                  />
                 </div>
-
               </div>
 
               {/* Phone */}
-
               <div>
-
                 <label className="mb-2 block text-sm font-semibold text-gray-700">
                   Phone Number
                 </label>
 
                 <div className="relative">
-
                   <Phone
                     size={18}
                     className="
@@ -349,21 +345,16 @@ function Checkout() {
                       focus:bg-white
                     "
                   />
-
                 </div>
-
               </div>
-
 
               {/* Address */}
               <div>
-
                 <label className="mb-2 block text-sm font-semibold text-gray-700">
                   Delivery Address
                 </label>
 
                 <div className="relative">
-
                   <MapPin
                     size={18}
                     className="
@@ -398,33 +389,33 @@ function Checkout() {
                       focus:bg-white
                     "
                   />
-
                 </div>
+              </div>
 
-               <div>
-
+              {/* City */}
+              <div>
                 <label className="mb-2 block text-sm font-semibold text-gray-700">
                   City
                 </label>
 
                 <div className="relative">
-
                   <MapPin
                     size={18}
                     className="
                       absolute
                       left-3
-                      top-4
+                      top-1/2
+                      -translate-y-1/2
                       text-gray-400
                     "
                   />
 
                   <input
                     type="text"
-                    name="City"
-                    value={formData.City}
+                    name="city"
+                    value={formData.city}
                     onChange={handleChange}
-                    placeholder="Enter your City"
+                    placeholder="Enter your city"
                     required
                     className="
                       w-full
@@ -436,56 +427,63 @@ function Checkout() {
                       pl-10
                       pr-4
                       text-sm
-                      mb-2
                       outline-none
                       transition
                       focus:border-orange-500
                       focus:bg-white
                     "
                   />
-
                 </div>
-
-               <div className="relative">
-  <label className="text-sm font-semibold text-gray-700">
-    Payment Method
-  </label>
-
-  <CreditCard
-    size={18}
-    className="absolute left-3 top-9 text-gray-900"
-  />
-
-  <select
-    name="paymentMethod"
-    value={formData.paymentMethod}
-    onChange={handleChange}
-    required
-    className="
-      w-full
-      rounded-xl
-      border
-      border-gray-200
-      bg-gray-50
-      py-3
-      pl-10
-      pr-4
-      text-sm
-      outline-none
-      transition
-      focus:border-orange-500
-      focus:bg-white
-    "
-  >
-    <option value="">Select Payment Method</option>
-    <option value="Cash on Delivery">Cash on Delivery</option>
-  </select>
-</div>
               </div>
 
-            </div>
-              
-             {/* Submit */}
+              {/* Payment Method */}
+              <div className="relative">
+                <label className="mb-2 block text-sm font-semibold text-gray-700">
+                  Payment Method
+                </label>
+
+                <CreditCard
+                  size={18}
+                  className="
+                    absolute
+                    left-3
+                    top-9.5
+                    text-gray-400
+                  "
+                />
+
+                <select
+                  name="paymentMethod"
+                  value={formData.paymentMethod}
+                  onChange={handleChange}
+                  required
+                  className="
+                    w-full
+                    rounded-xl
+                    border
+                    border-gray-200
+                    bg-gray-50
+                    py-3
+                    pl-10
+                    pr-4
+                    text-sm
+                    outline-none
+                    transition
+                    focus:border-orange-500
+                    focus:bg-white
+                  "
+                >
+                  <option value="">
+                    Select Payment Method
+                  </option>
+
+                  <option value="Cash on Delivery">
+                    Cash on Delivery
+                  </option>
+                </select>
+              </div>
+
+              {/* Submit */}
               <button
                 type="submit"
                 disabled={loading}
@@ -521,7 +519,6 @@ function Checkout() {
               </button>
 
             </form>
-
           </div>
 
           {/* =====================================
@@ -536,49 +533,56 @@ function Checkout() {
 
             {/* Products */}
             <div className="mt-5 space-y-4">
-
               {cart.map((item) => (
                 <div
                   key={item.name}
                   className="flex items-center gap-3"
                 >
-
                   <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-gray-100">
-
                     <img
                       src={item.image}
                       alt={item.name}
                       className="h-full w-full object-contain"
                     />
 
-                    <span className="absolute right-0 top-0 rounded-bl-md bg-orange-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                    <span className="
+                      absolute
+                      right-0
+                      top-0
+                      rounded-bl-md
+                      bg-orange-500
+                      px-1.5
+                      py-0.5
+                      text-[10px]
+                      font-bold
+                      text-white
+                    ">
                       {item.quantity}
                     </span>
-
                   </div>
 
                   <div className="min-w-0 flex-1">
-
-                    <h3 className="truncate text-sm font-bold text-gray-800">
+                    <h3 className="
+                      truncate
+                      text-sm
+                      font-bold
+                      text-gray-800
+                    ">
                       {item.name}
                     </h3>
 
                     <p className="text-xs text-gray-500">
                       {item.price}
                     </p>
-
                   </div>
-
                 </div>
               ))}
-
             </div>
 
             {/* Price */}
             <div className="mt-6 space-y-3 border-t pt-5">
 
               <div className="flex justify-between">
-
                 <span className="text-sm text-gray-600">
                   Subtotal
                 </span>
@@ -586,11 +590,9 @@ function Checkout() {
                 <span className="text-sm font-semibold">
                   PKR {totalPrice.toLocaleString()}
                 </span>
-
               </div>
 
               <div className="flex justify-between">
-
                 <span className="text-sm text-gray-600">
                   Delivery
                 </span>
@@ -598,11 +600,9 @@ function Checkout() {
                 <span className="text-sm font-semibold">
                   PKR 500
                 </span>
-
               </div>
 
               <div className="flex justify-between border-t pt-4">
-
                 <span className="text-lg font-bold">
                   Total
                 </span>
@@ -610,17 +610,13 @@ function Checkout() {
                 <span className="text-lg font-bold text-orange-500">
                   PKR {finalTotal.toLocaleString()}
                 </span>
-
               </div>
 
             </div>
-
           </div>
 
         </div>
-
       </div>
-
     </div>
   );
 }

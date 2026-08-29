@@ -2,6 +2,8 @@ import { useState } from "react";
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
 
+const API_BASE_URL = "https://amora-backend-lake.vercel.app";
+
 function AddProduct() {
   const [form, setForm] = useState({
     name: "",
@@ -12,10 +14,11 @@ function AddProduct() {
   });
 
   const [images, setImages] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  // =====================================================
+  // ==========================================
   // FORM CHANGE
-  // =====================================================
+  // ==========================================
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -26,9 +29,9 @@ function AddProduct() {
     }));
   };
 
-  // =====================================================
-  // IMAGES SELECT
-  // =====================================================
+  // ==========================================
+  // IMAGE SELECT
+  // ==========================================
 
   const handleImages = (e) => {
     const files = Array.from(e.target.files || []);
@@ -50,16 +53,12 @@ function AddProduct() {
     setImages(files);
   };
 
-  // =====================================================
-  // SUBMIT PRODUCT
-  // =====================================================
+  // ==========================================
+  // SUBMIT
+  // ==========================================
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // -----------------------------
-    // FRONTEND VALIDATION
-    // -----------------------------
 
     if (!form.name.trim()) {
       alert("Please enter product name.");
@@ -71,12 +70,12 @@ function AddProduct() {
       return;
     }
 
-    if (!form.price || Number(form.price) < 0) {
+    if (form.price === "" || Number(form.price) < 0) {
       alert("Please enter a valid product price.");
       return;
     }
 
-    if (!form.stock || Number(form.stock) < 0) {
+    if (form.stock === "" || Number(form.stock) < 0) {
       alert("Please enter a valid stock quantity.");
       return;
     }
@@ -91,48 +90,49 @@ function AddProduct() {
       return;
     }
 
-    try {
-      // =================================================
-      // CREATE FORMDATA
-      // =================================================
+    setLoading(true);
 
+    try {
       const formData = new FormData();
 
-      formData.append("name", form.name.trim());
-      formData.append("category", form.category);
-      formData.append("price", String(Number(form.price)));
-      formData.append("stock", String(Number(form.stock)));
+      formData.append(
+        "name",
+        form.name.trim()
+      );
+
+      formData.append(
+        "category",
+        form.category
+      );
+
+      formData.append(
+        "price",
+        String(Number(form.price))
+      );
+
+      formData.append(
+        "stock",
+        String(Number(form.stock))
+      );
+
       formData.append(
         "description",
         form.description.trim()
       );
 
-      // =================================================
-      // ADD IMAGES
-      // =================================================
-
       images.forEach((image) => {
         formData.append("images", image);
       });
 
-      // =================================================
-      // API REQUEST
-      // =================================================
-
       const response = await fetch(
-        "http://localhost:5000/api/products",
+        `${API_BASE_URL}/api/products`,
         {
           method: "POST",
           body: formData,
         }
       );
 
-      // Try to read JSON response
       const data = await response.json();
-
-      // =================================================
-      // ERROR HANDLING
-      // =================================================
 
       if (!response.ok) {
         throw new Error(
@@ -142,13 +142,8 @@ function AddProduct() {
         );
       }
 
-      // =================================================
-      // SUCCESS
-      // =================================================
-
       alert("Product added successfully!");
 
-      // Reset form
       setForm({
         name: "",
         category: "Electronics",
@@ -159,13 +154,13 @@ function AddProduct() {
 
       setImages([]);
 
-      // Reset file input
       const fileInput =
         document.getElementById("productImages");
 
       if (fileInput) {
         fileInput.value = "";
       }
+
     } catch (error) {
       console.error("Add Product Error:", error);
 
@@ -173,12 +168,14 @@ function AddProduct() {
         error.message ||
           "Something went wrong while adding product."
       );
+    } finally {
+      setLoading(false);
     }
   };
 
-  // =====================================================
+  // ==========================================
   // CANCEL
-  // =====================================================
+  // ==========================================
 
   const handleCancel = () => {
     setForm({
@@ -199,19 +196,20 @@ function AddProduct() {
     }
   };
 
-  // =====================================================
+  // ==========================================
   // UI
-  // =====================================================
+  // ==========================================
 
   return (
     <div className="min-h-screen bg-slate-100">
+
       <Sidebar />
 
       <Navbar />
 
       <main className="ml-50 pt-2">
+
         <div className="p-8">
-          {/* PAGE HEADING */}
 
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-slate-800">
@@ -223,12 +221,10 @@ function AddProduct() {
             </p>
           </div>
 
-          {/* FORM CARD */}
-
           <div className="max-w-5xl rounded-2xl border border-slate-200 bg-white shadow-sm">
-            {/* CARD HEADER */}
 
             <div className="border-b border-slate-100 px-8 py-5">
+
               <h2 className="text-lg font-semibold text-slate-800">
                 Product Information
               </h2>
@@ -236,17 +232,18 @@ function AddProduct() {
               <p className="mt-1 text-sm text-slate-500">
                 Enter the details of your product below.
               </p>
-            </div>
 
-            {/* FORM */}
+            </div>
 
             <form
               onSubmit={handleSubmit}
               className="p-8"
             >
-              {/* PRODUCT NAME */}
+
+              {/* NAME */}
 
               <div className="mb-6">
+
                 <label className="mb-2 block text-sm font-semibold text-slate-700">
                   Product Name
                 </label>
@@ -260,14 +257,15 @@ function AddProduct() {
                   required
                   className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-50"
                 />
+
               </div>
 
-              {/* CATEGORY / PRICE / STOCK */}
+              {/* CATEGORY PRICE STOCK */}
 
               <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-3">
-                {/* CATEGORY */}
 
                 <div>
+
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
                     Category
                   </label>
@@ -323,11 +321,11 @@ function AddProduct() {
                       Bags
                     </option>
                   </select>
+
                 </div>
 
-                {/* PRICE */}
-
                 <div>
+
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
                     Price
                   </label>
@@ -342,11 +340,11 @@ function AddProduct() {
                     required
                     className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50"
                   />
+
                 </div>
 
-                {/* STOCK */}
-
                 <div>
+
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
                     Stock
                   </label>
@@ -361,17 +359,21 @@ function AddProduct() {
                     required
                     className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50"
                   />
+
                 </div>
+
               </div>
 
-              {/* PRODUCT IMAGES */}
+              {/* IMAGES */}
 
               <div className="mb-6">
+
                 <label className="mb-2 block text-sm font-semibold text-slate-700">
                   Product Images
                 </label>
 
                 <div className="rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 p-6">
+
                   <input
                     id="productImages"
                     type="file"
@@ -386,20 +388,21 @@ function AddProduct() {
                     Select minimum 1 and maximum 10 images.
                   </p>
 
-                  {/* SELECTED IMAGES */}
-
                   {images.length > 0 && (
                     <div className="mt-6">
+
                       <p className="mb-3 text-sm font-semibold text-slate-700">
                         Selected Images ({images.length}/10)
                       </p>
 
                       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+
                         {images.map((image, index) => (
                           <div
                             key={`${image.name}-${index}`}
                             className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
                           >
+
                             <img
                               src={URL.createObjectURL(image)}
                               alt={`Product ${index + 1}`}
@@ -409,8 +412,10 @@ function AddProduct() {
                             <p className="px-2 py-2 text-center text-xs font-semibold text-slate-600">
                               Image {index + 1}
                             </p>
+
                           </div>
                         ))}
+
                       </div>
                     </div>
                   )}
@@ -420,6 +425,7 @@ function AddProduct() {
               {/* DESCRIPTION */}
 
               <div className="mb-8">
+
                 <label className="mb-2 block text-sm font-semibold text-slate-700">
                   Description
                 </label>
@@ -432,27 +438,34 @@ function AddProduct() {
                   rows="5"
                   required
                   className="w-full resize-none rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50"
-                ></textarea>
+                />
+
               </div>
 
               {/* BUTTONS */}
 
               <div className="flex justify-end gap-3 border-t border-slate-100 pt-6">
+
                 <button
                   type="button"
                   onClick={handleCancel}
-                  className="rounded-xl border cursor-pointer  border-slate-300 px-6 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+                  className="cursor-pointer rounded-xl border border-slate-300 px-6 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
                 >
                   Cancel
                 </button>
 
                 <button
                   type="submit"
-                  className="rounded-xl cursor-pointer bg-blue-600 px-7 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
+                  disabled={loading}
+                  className="cursor-pointer rounded-xl bg-blue-600 px-7 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  + Add Product
+                  {loading
+                    ? "Adding Product..."
+                    : "+ Add Product"}
                 </button>
+
               </div>
+
             </form>
           </div>
         </div>
