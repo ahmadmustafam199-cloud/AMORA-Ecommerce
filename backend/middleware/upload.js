@@ -12,17 +12,21 @@ cloudinary.config({
 });
 
 // =====================================================
-// STORAGE (Cloudinary Storage Engine)
+// STORAGE CONFIGURATION
 // =====================================================
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
-  params: {
-    folder: "amora_products", // Cloudinary mein folder ka naam
-    allowed_formats: ["jpg", "jpeg", "png", "webp", "gif", "jfif"],
-    public_id: (req, file) => {
-      // Unique filename generate karne ke liye
-      return Date.now() + "-" + Math.round(Math.random() * 1e9);
-    },
+  params: async (req, file) => {
+    // File format nikaalein extension se
+    const fileExtension = file.originalname.split(".").pop().toLowerCase();
+
+    return {
+      folder: "amora_products",
+      format: ["jpg", "jpeg", "png", "webp", "gif"].includes(fileExtension)
+        ? fileExtension
+        : "jpg",
+      public_id: `${Date.now()}-${Math.round(Math.random() * 1e9)}`,
+    };
   },
 });
 
@@ -36,14 +40,13 @@ const fileFilter = (req, file, cb) => {
     "image/png",
     "image/webp",
     "image/gif",
-    "image/jfif",
   ];
 
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
     cb(
-      new Error("Only JPG, PNG, WEBP, GIF and JFIF images are allowed"),
+      new Error("Only JPG, JPEG, PNG, WEBP, and GIF images are allowed"),
       false
     );
   }
@@ -53,11 +56,11 @@ const fileFilter = (req, file, cb) => {
 // MULTER EXPORT
 // =====================================================
 const upload = multer({
-  storage,
-  fileFilter,
+  storage: storage,
+  fileFilter: fileFilter,
   limits: {
     files: 7,
-    fileSize: 5 * 1024 * 1024, // 5MB limit
+    fileSize: 5 * 1024 * 1024, // 5MB
   },
 });
 
