@@ -11,29 +11,45 @@ import {
   User,
 } from "lucide-react";
 
+// =====================================================
+// BACKEND URL
+// =====================================================
+
 const API_URL =
   import.meta.env.VITE_API_URL ||
   "https://amora-backend-lake.vercel.app";
 
 // =====================================================
-// IMAGE URL HELPER
+// SAFE IMAGE URL HELPER
 // =====================================================
 
 const getImageUrl = (image) => {
-  if (!image) return "";
+  // Prevent null / undefined / non-string errors
+  if (!image || typeof image !== "string") {
+    return "";
+  }
 
+  const cleanImage = image.trim();
+
+  if (!cleanImage) {
+    return "";
+  }
+
+  // Complete URL
   if (
-    image.startsWith("http://") ||
-    image.startsWith("https://")
+    cleanImage.startsWith("http://") ||
+    cleanImage.startsWith("https://")
   ) {
-    return image;
+    return cleanImage;
   }
 
-  if (image.startsWith("/")) {
-    return `${API_URL}${image}`;
+  // Relative URL
+  if (cleanImage.startsWith("/")) {
+    return `${API_URL}${cleanImage}`;
   }
 
-  return `${API_URL}/${image}`;
+  // Filename/path
+  return `${API_URL}/${cleanImage}`;
 };
 
 // =====================================================
@@ -44,6 +60,10 @@ function Reviews() {
   const { id } = useParams();
   const navigate = useNavigate();
 
+  // =====================================================
+  // PRODUCT + REVIEWS STATE
+  // =====================================================
+
   const [product, setProduct] = useState(null);
   const [reviews, setReviews] = useState([]);
 
@@ -52,6 +72,10 @@ function Reviews() {
 
   const [loadingReviews, setLoadingReviews] =
     useState(true);
+
+  // =====================================================
+  // FORM STATE
+  // =====================================================
 
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -67,7 +91,9 @@ function Reviews() {
   // =====================================================
 
   useEffect(() => {
-    if (!id) return;
+    if (!id) {
+      return;
+    }
 
     let ignore = false;
 
@@ -85,7 +111,9 @@ function Reviews() {
         const reviewsData =
           await reviewsResponse.json();
 
-        if (ignore) return;
+        if (ignore) {
+          return;
+        }
 
         // =================================================
         // PRODUCT
@@ -98,12 +126,12 @@ function Reviews() {
           );
         }
 
-        // Your backend returns product directly
-        setProduct(
+        const productResult =
           productData.product ||
-            productData.data ||
-            productData
-        );
+          productData.data ||
+          productData;
+
+        setProduct(productResult);
 
         // =================================================
         // REVIEWS
@@ -114,7 +142,11 @@ function Reviews() {
           reviewsData.success
         ) {
           setReviews(
-            reviewsData.reviews || []
+            Array.isArray(
+              reviewsData.reviews
+            )
+              ? reviewsData.reviews
+              : []
           );
         } else {
           setReviews([]);
@@ -154,13 +186,19 @@ function Reviews() {
     setError("");
     setSuccess(false);
 
-    // Rating validation
+    // =================================================
+    // RATING VALIDATION
+    // =================================================
+
     if (rating === 0) {
       setError("Please select a rating.");
       return;
     }
 
-    // Gmail validation
+    // =================================================
+    // GMAIL VALIDATION
+    // =================================================
+
     if (
       !/^[a-zA-Z0-9._%+-]+@gmail\.com$/i.test(
         email.trim()
@@ -172,15 +210,25 @@ function Reviews() {
       return;
     }
 
-    // Pakistani phone validation
-    if (!/^03[0-9]{9}$/.test(phone.trim())) {
+    // =================================================
+    // PHONE VALIDATION
+    // =================================================
+
+    if (
+      !/^03[0-9]{9}$/.test(
+        phone.trim()
+      )
+    ) {
       setError(
         "Please enter a valid Pakistani phone number."
       );
       return;
     }
 
-    // Comment validation
+    // =================================================
+    // COMMENT VALIDATION
+    // =================================================
+
     if (comment.trim().length < 5) {
       setError(
         "Review must contain at least 5 characters."
@@ -198,6 +246,10 @@ function Reviews() {
     try {
       setSubmitting(true);
 
+      // =================================================
+      // SEND REVIEW
+      // =================================================
+
       const response = await fetch(
         `${API_URL}/api/reviews`,
         {
@@ -209,11 +261,15 @@ function Reviews() {
 
           body: JSON.stringify({
             productId: id,
+
             email: email
               .trim()
               .toLowerCase(),
+
             phone: phone.trim(),
+
             rating: Number(rating),
+
             comment: comment.trim(),
           }),
         }
@@ -241,7 +297,10 @@ function Reviews() {
       setRating(0);
       setComment("");
 
-      // Reload reviews
+      // =================================================
+      // RELOAD REVIEWS
+      // =================================================
+
       const reviewsResponse =
         await fetch(
           `${API_URL}/api/reviews/${id}`
@@ -255,10 +314,15 @@ function Reviews() {
         reviewsData.success
       ) {
         setReviews(
-          reviewsData.reviews || []
+          Array.isArray(
+            reviewsData.reviews
+          )
+            ? reviewsData.reviews
+            : []
         );
       }
 
+      // Hide success message
       setTimeout(() => {
         setSuccess(false);
       }, 4000);
@@ -317,6 +381,7 @@ function Reviews() {
           </p>
 
           <button
+            type="button"
             onClick={() => navigate("/")}
             className="mt-5 rounded-lg bg-orange-500 px-5 py-2.5 text-xs font-bold text-white transition hover:bg-orange-600"
           >
@@ -328,13 +393,17 @@ function Reviews() {
   }
 
   // =====================================================
-  // PRODUCT IMAGE
+  // SAFE PRODUCT IMAGE
   // =====================================================
 
   const productImage =
-    product.image ||
-    product.images?.[0] ||
-    "";
+    typeof product?.image === "string" &&
+    product.image.trim()
+      ? product.image
+      : Array.isArray(product?.images) &&
+        typeof product.images[0] === "string"
+      ? product.images[0]
+      : "";
 
   // =====================================================
   // RENDER
@@ -343,15 +412,19 @@ function Reviews() {
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-6 md:px-7 lg:px-10">
 
-      {/* BACK */}
+      {/* =================================================
+          BACK BUTTON
+      ================================================= */}
 
       <button
+        type="button"
         onClick={() =>
           navigate(`/product/${id}`)
         }
         className="mb-5 flex items-center gap-2 text-xs font-semibold text-gray-600 transition hover:text-orange-500"
       >
         <ArrowLeft size={15} />
+
         Back To Product
       </button>
 
@@ -360,17 +433,20 @@ function Reviews() {
       ================================================= */}
 
       <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-lg">
-
         <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:p-6">
 
-          <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gray-50">
+          {/* PRODUCT IMAGE */}
 
+          <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gray-50">
             {productImage ? (
               <img
                 src={getImageUrl(
                   productImage
                 )}
-                alt={product.name}
+                alt={
+                  product.name ||
+                  "Product"
+                }
                 className="h-20 w-20 object-contain"
                 onError={(e) => {
                   e.currentTarget.style.display =
@@ -383,8 +459,9 @@ function Reviews() {
                 className="text-gray-300"
               />
             )}
-
           </div>
+
+          {/* PRODUCT INFORMATION */}
 
           <div>
             <p className="text-[10px] font-bold uppercase tracking-widest text-orange-500">
@@ -392,7 +469,8 @@ function Reviews() {
             </p>
 
             <h1 className="mt-1 text-xl font-bold text-gray-900">
-              {product.name}
+              {product.name ||
+                "Unnamed Product"}
             </h1>
 
             <p className="mt-1 text-xs text-gray-500">
@@ -400,9 +478,7 @@ function Reviews() {
               experiences.
             </p>
           </div>
-
         </div>
-
       </div>
 
       {/* =================================================
@@ -412,15 +488,15 @@ function Reviews() {
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
 
         {/* =================================================
-            REVIEWS
+            REVIEWS SECTION
         ================================================= */}
 
         <div className="lg:col-span-2">
-
           <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-lg md:p-6">
 
-            <div className="flex items-center justify-between">
+            {/* REVIEWS HEADER */}
 
+            <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-bold text-gray-900">
                   Customer Reviews
@@ -440,7 +516,6 @@ function Reviews() {
                   size={20}
                 />
               </div>
-
             </div>
 
             {/* LOADING */}
@@ -458,7 +533,6 @@ function Reviews() {
               /* NO REVIEWS */
 
               <div className="mt-6 rounded-xl border border-dashed border-gray-200 bg-gray-50 py-12 text-center">
-
                 <MessageSquare
                   size={32}
                   className="mx-auto text-gray-300"
@@ -472,7 +546,6 @@ function Reviews() {
                   Be the first customer to
                   review this product.
                 </p>
-
               </div>
 
             ) : (
@@ -480,16 +553,16 @@ function Reviews() {
               /* REVIEWS LIST */
 
               <div className="mt-5 space-y-3">
-
                 {reviews.map(
-                  (review) => (
+                  (review, index) => (
                     <div
                       key={
-                        review._id
+                        review?._id ||
+                        review?.id ||
+                        index
                       }
                       className="rounded-xl border border-gray-100 p-4 transition hover:border-orange-100 hover:shadow-sm"
                     >
-
                       <div className="flex items-start gap-3">
 
                         {/* USER ICON */}
@@ -502,6 +575,8 @@ function Reviews() {
 
                         <div className="min-w-0 flex-1">
 
+                          {/* REVIEW HEADER */}
+
                           <div className="flex flex-col justify-between gap-2 sm:flex-row">
 
                             <div>
@@ -510,20 +585,16 @@ function Reviews() {
                               </p>
 
                               <p className="mt-0.5 break-all text-[10px] text-gray-400">
-                                {
-                                  review.email
-                                }
+                                {review?.email ||
+                                  "Customer"}
                               </p>
                             </div>
 
                             {/* RATING */}
 
                             <div className="flex">
-
                               {[1, 2, 3, 4, 5].map(
-                                (
-                                  star
-                                ) => (
+                                (star) => (
                                   <Star
                                     key={
                                       star
@@ -534,7 +605,8 @@ function Reviews() {
                                     className={
                                       star <=
                                       Number(
-                                        review.rating
+                                        review?.rating ||
+                                          0
                                       )
                                         ? "fill-yellow-400 text-yellow-400"
                                         : "text-gray-300"
@@ -542,23 +614,20 @@ function Reviews() {
                                   />
                                 )
                               )}
-
                             </div>
-
                           </div>
 
                           {/* COMMENT */}
 
                           <p className="mt-3 text-xs leading-5 text-gray-600">
-                            {
-                              review.comment
-                            }
+                            {review?.comment ||
+                              "No comment provided."}
                           </p>
 
                           {/* DATE */}
 
                           <p className="mt-2 text-[9px] text-gray-400">
-                            {review.createdAt
+                            {review?.createdAt
                               ? new Date(
                                   review.createdAt
                                 ).toLocaleDateString(
@@ -572,20 +641,14 @@ function Reviews() {
                                 )
                               : ""}
                           </p>
-
                         </div>
-
                       </div>
-
                     </div>
                   )
                 )}
-
               </div>
             )}
-
           </div>
-
         </div>
 
         {/* =================================================
@@ -593,11 +656,11 @@ function Reviews() {
         ================================================= */}
 
         <div>
-
           <div className="sticky top-5 rounded-2xl border border-gray-100 bg-white p-5 shadow-lg md:p-6">
 
-            <div>
+            {/* FORM HEADER */}
 
+            <div>
               <p className="text-[10px] font-bold uppercase tracking-widest text-orange-500">
                 Your Opinion Matters
               </p>
@@ -610,8 +673,9 @@ function Reviews() {
                 Share your experience with
                 this product.
               </p>
-
             </div>
+
+            {/* FORM */}
 
             <form
               onSubmit={handleSubmit}
@@ -671,13 +735,11 @@ function Reviews() {
               {/* RATING */}
 
               <div>
-
                 <label className="mb-1.5 block text-[11px] font-bold text-gray-700">
                   Your Rating
                 </label>
 
                 <div className="flex items-center gap-1">
-
                   {[1, 2, 3, 4, 5].map(
                     (star) => (
                       <button
@@ -708,15 +770,12 @@ function Reviews() {
                       {rating}/5
                     </span>
                   )}
-
                 </div>
-
               </div>
 
               {/* COMMENT */}
 
               <div>
-
                 <label className="mb-1.5 block text-[11px] font-bold text-gray-700">
                   Your Review
                 </label>
@@ -738,7 +797,6 @@ function Reviews() {
                 <p className="mt-1 text-right text-[9px] text-gray-400">
                   {comment.length}/500
                 </p>
-
               </div>
 
               {/* ERROR */}
@@ -756,6 +814,7 @@ function Reviews() {
                   <CheckCircle
                     size={15}
                   />
+
                   Review submitted
                   successfully!
                 </div>
@@ -768,23 +827,16 @@ function Reviews() {
                 disabled={submitting}
                 className="flex w-full items-center justify-center gap-2 rounded-lg bg-orange-500 px-4 py-3 text-xs font-bold text-white shadow-md shadow-orange-500/20 transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
               >
-
                 <Send size={15} />
 
                 {submitting
                   ? "Submitting..."
                   : "Submit Review"}
-
               </button>
-
             </form>
-
           </div>
-
         </div>
-
       </div>
-
     </div>
   );
 }

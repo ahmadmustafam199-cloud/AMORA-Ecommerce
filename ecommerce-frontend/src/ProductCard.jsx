@@ -20,24 +20,33 @@ import { useCart } from "./useCart";
 const API_URL = "https://amora-backend-lake.vercel.app";
 
 // =====================================================
-// IMAGE URL HELPER (UPDATED SAFE CHECK)
+// IMAGE URL HELPER (SAFE)
 // =====================================================
 
 const getImageUrl = (image) => {
-  if (!image || typeof image !== "string") return "";
+  // Prevent null / undefined / non-string errors
+  if (!image || typeof image !== "string") {
+    return "";
+  }
+
+  const cleanImage = image.trim();
+
+  if (!cleanImage) {
+    return "";
+  }
 
   if (
-    image.startsWith("http://") ||
-    image.startsWith("https://")
+    cleanImage.startsWith("http://") ||
+    cleanImage.startsWith("https://")
   ) {
-    return image;
+    return cleanImage;
   }
 
-  if (image.startsWith("/")) {
-    return `${API_URL}${image}`;
+  if (cleanImage.startsWith("/")) {
+    return `${API_URL}${cleanImage}`;
   }
 
-  return `${API_URL}/${image}`;
+  return `${API_URL}/${cleanImage}`;
 };
 
 // =====================================================
@@ -228,9 +237,16 @@ function ProductCard({
       ...product,
 
       image:
-        product.image ||
-        product.images?.[0] ||
-        "",
+        typeof product.image === "string" &&
+        product.image.trim()
+          ? product.image
+          : Array.isArray(product.images)
+          ? product.images.find(
+              (img) =>
+                typeof img === "string" &&
+                img.trim()
+            ) || ""
+          : "",
     };
 
     addToCart(cartProduct);
@@ -486,18 +502,46 @@ function ProductCard({
 
                   <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white shadow-sm">
 
-                    {notification.image ||
-                    notification.images?.[0] ? (
+                    {getImageUrl(
+                      notification.image ||
+                        (
+                          Array.isArray(
+                            notification.images
+                          )
+                            ? notification.images.find(
+                                (img) =>
+                                  typeof img ===
+                                    "string" &&
+                                  img.trim()
+                              )
+                            : ""
+                        ) || ""
+                    ) ? (
                       <img
                         src={getImageUrl(
                           notification.image ||
-                            notification.images?.[0]
+                            (
+                              Array.isArray(
+                                notification.images
+                              )
+                                ? notification.images.find(
+                                    (img) =>
+                                      typeof img ===
+                                        "string" &&
+                                      img.trim()
+                                  )
+                                : ""
+                            ) || ""
                         )}
                         alt={
                           notification.name ||
                           "Product"
                         }
                         className="h-full w-full object-contain"
+                        onError={(e) => {
+                          e.currentTarget.style.display =
+                            "none";
+                        }}
                       />
                     ) : (
                       <ShoppingCart
@@ -620,10 +664,18 @@ function ProductCard({
               product._id ||
               product.id;
 
+            // SAFE IMAGE SELECTION
             const image =
-              product.image ||
-              product.images?.[0] ||
-              "";
+              typeof product.image === "string" &&
+              product.image.trim()
+                ? product.image
+                : Array.isArray(product.images)
+                ? product.images.find(
+                    (img) =>
+                      typeof img === "string" &&
+                      img.trim()
+                  ) || ""
+                : "";
 
             const isClicked =
               clickedProduct ===
@@ -689,7 +741,7 @@ function ProductCard({
 
                   {/* IMAGE */}
 
-                  {image ? (
+                  {getImageUrl(image) ? (
                     <img
                       src={getImageUrl(image)}
                       alt={
@@ -700,22 +752,41 @@ function ProductCard({
                       onError={(e) => {
                         e.currentTarget.style.display =
                           "none";
+
+                        const fallback =
+                          e.currentTarget.parentElement?.querySelector(
+                            ".product-image-fallback"
+                          );
+
+                        if (fallback) {
+                          fallback.classList.remove(
+                            "hidden"
+                          );
+                        }
                       }}
                     />
-                  ) : (
-                    <div className="flex h-full items-center justify-center">
-                      <ShoppingCart
-                        size={30}
-                        className="text-gray-300"
-                      />
-                    </div>
-                  )}
+                  ) : null}
+
+                  {/* IMAGE FALLBACK */}
+
+                  <div
+                    className={`product-image-fallback flex h-full items-center justify-center ${
+                      getImageUrl(image)
+                        ? "hidden"
+                        : ""
+                    }`}
+                  >
+                    <ShoppingCart
+                      size={30}
+                      className="text-gray-300"
+                    />
+                  </div>
 
                   {/* =================================================
                       QUICK VIEW
                   ================================================= */}
 
-                  <div className="absolute inset-0 z-10 flex flex-col justify-end  from-black/75 via-black/20 to-transparent opacity-0 transition-all duration-300 group-hover:opacity-100">
+                  <div className="absolute inset-0 z-10 flex flex-col justify-end from-black/75 via-black/20 to-transparent opacity-0 transition-all duration-300 group-hover:opacity-100">
 
                     <div className="translate-y-5 p-3 transition-transform duration-300 group-hover:translate-y-0">
 
