@@ -1,3 +1,4 @@
+
 import { Pencil, Trash2, Eye, ImageOff } from "lucide-react";
 
 const API_BASE_URL = "https://amora-backend-lake.vercel.app";
@@ -16,12 +17,15 @@ function ProductTable({
     "grid grid-cols-[30px_90px_minmax(120px,1fr)_minmax(150px,1.2fr)_90px_85px_65px_105px] items-center gap-2";
 
   // =====================================================
-  // SAFE IMAGE URL
+  // GET IMAGE URL
   // =====================================================
 
   const getImageUrl = (image) => {
-    // null, undefined, empty string, number etc.
-    if (!image || typeof image !== "string") {
+    if (!image) {
+      return "";
+    }
+
+    if (typeof image !== "string") {
       return "";
     }
 
@@ -31,15 +35,15 @@ function ProductTable({
       return "";
     }
 
-    // Already complete URL
+    // Cloudinary / complete URL
     if (
-      cleanImage.startsWith("http://") ||
-      cleanImage.startsWith("https://")
+      cleanImage.startsWith("https://") ||
+      cleanImage.startsWith("http://")
     ) {
       return cleanImage;
     }
 
-    // Backend relative path
+    // Backend relative URL
     if (cleanImage.startsWith("/")) {
       return `${API_BASE_URL}${cleanImage}`;
     }
@@ -48,13 +52,15 @@ function ProductTable({
   };
 
   // =====================================================
-  // SAFE PRODUCT IMAGE
+  // GET PRODUCT IMAGES
   // =====================================================
 
   const getProductImages = (product) => {
-    if (!product) return [];
+    if (!product) {
+      return [];
+    }
 
-    // If images array exists
+    // Main field from backend
     if (Array.isArray(product.images)) {
       return product.images
         .filter(
@@ -62,15 +68,16 @@ function ProductTable({
             typeof image === "string" &&
             image.trim() !== ""
         )
+        .map((image) => image.trim())
         .slice(0, 2);
     }
 
-    // If only single image exists
+    // Fallback for old products
     if (
       typeof product.image === "string" &&
       product.image.trim() !== ""
     ) {
-      return [product.image];
+      return [product.image.trim()];
     }
 
     return [];
@@ -80,11 +87,13 @@ function ProductTable({
   // PRODUCT ID
   // =====================================================
 
-  const getProductId = (product) =>
-    product?._id || product?.id;
+  const getProductId = (product) => {
+    return product?._id || product?.id || "";
+  };
 
   return (
     <div className="w-full overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-sm">
+
       {/* =================================================
           HEADER
       ================================================= */}
@@ -110,10 +119,11 @@ function ProductTable({
       </div>
 
       {/* =================================================
-          PRODUCTS BODY
+          PRODUCTS
       ================================================= */}
 
       <div className="divide-y divide-slate-100">
+
         {products.map((product, index) => {
           const productId =
             getProductId(product);
@@ -129,6 +139,7 @@ function ProductTable({
               }
               className={`${gridLayout} px-3 py-2.5 transition-colors hover:bg-slate-50/80`}
             >
+
               {/* =================================================
                   NUMBER
               ================================================= */}
@@ -142,6 +153,7 @@ function ProductTable({
               ================================================= */}
 
               <div className="flex items-center gap-1">
+
                 {productImages.length > 0 ? (
                   productImages.map(
                     (image, imageIndex) => {
@@ -151,17 +163,23 @@ function ProductTable({
                       return (
                         <div
                           key={`${image}-${imageIndex}`}
-                          className="relative h-9 w-9 overflow-hidden rounded-md border border-slate-200 bg-slate-50"
+                          className="relative h-12 w-12 overflow-hidden rounded-md border border-slate-200 bg-slate-50"
                         >
                           {imageUrl ? (
                             <img
                               src={imageUrl}
                               alt={
-                                product.name ||
+                                product?.name ||
                                 "Product"
                               }
                               className="h-full w-full object-cover"
+                              loading="lazy"
                               onError={(event) => {
+                                console.error(
+                                  "IMAGE LOAD ERROR:",
+                                  imageUrl
+                                );
+
                                 event.currentTarget.style.display =
                                   "none";
 
@@ -169,17 +187,21 @@ function ProductTable({
                                   event.currentTarget
                                     .nextElementSibling;
 
-                                if (
-                                  fallback
-                                ) {
-                                  fallback.style.display =
-                                    "flex";
+                                if (fallback) {
+                                  fallback.classList.remove(
+                                    "hidden"
+                                  );
+
+                                  fallback.classList.add(
+                                    "flex"
+                                  );
                                 }
                               }}
                             />
                           ) : null}
 
-                          {/* Image fallback */}
+                          {/* IMAGE FALLBACK */}
+
                           <div
                             className={`${
                               imageUrl
@@ -188,7 +210,7 @@ function ProductTable({
                             } absolute inset-0 items-center justify-center`}
                           >
                             <ImageOff
-                              size={15}
+                              size={18}
                               className="text-slate-300"
                             />
                           </div>
@@ -197,10 +219,9 @@ function ProductTable({
                     }
                   )
                 ) : (
-                  /* No image */
-                  <div className="flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 bg-slate-50">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-md border border-slate-200 bg-slate-50">
                     <ImageOff
-                      size={15}
+                      size={18}
                       className="text-slate-300"
                     />
                   </div>
@@ -215,11 +236,11 @@ function ProductTable({
                 <h3
                   className="truncate text-xs font-semibold text-slate-800"
                   title={
-                    product.name ||
+                    product?.name ||
                     "Unnamed Product"
                   }
                 >
-                  {product.name ||
+                  {product?.name ||
                     "Unnamed Product"}
                 </h3>
               </div>
@@ -232,11 +253,11 @@ function ProductTable({
                 <p
                   className="truncate text-[11px] text-slate-500"
                   title={
-                    product.description ||
+                    product?.description ||
                     "No description"
                   }
                 >
-                  {product.description ||
+                  {product?.description ||
                     "No description"}
                 </p>
               </div>
@@ -249,11 +270,11 @@ function ProductTable({
                 <span
                   className="inline-block max-w-full truncate rounded border border-emerald-100 bg-emerald-50 px-1.5 py-0.5 text-[11px] font-medium text-emerald-700"
                   title={
-                    product.category ||
+                    product?.category ||
                     "Uncategorized"
                   }
                 >
-                  {product.category ||
+                  {product?.category ||
                     "Uncategorized"}
                 </span>
               </div>
@@ -265,7 +286,7 @@ function ProductTable({
               <div className="whitespace-nowrap text-right text-xs font-semibold text-slate-700">
                 Rs.{" "}
                 {Number(
-                  product.price || 0
+                  product?.price || 0
                 ).toLocaleString()}
               </div>
 
@@ -277,14 +298,14 @@ function ProductTable({
                 <span
                   className={`inline-block rounded px-1.5 py-0.5 text-[11px] font-medium ${
                     Number(
-                      product.stock || 0
+                      product?.stock || 0
                     ) > 0
                       ? "bg-slate-100 text-slate-700"
                       : "border border-red-100 bg-red-50 text-red-600"
                   }`}
                 >
                   {Number(
-                    product.stock || 0
+                    product?.stock || 0
                   )}
                 </span>
               </div>
@@ -294,6 +315,7 @@ function ProductTable({
               ================================================= */}
 
               <div className="flex items-center justify-center gap-1">
+
                 {/* EDIT */}
 
                 <button
@@ -335,6 +357,7 @@ function ProductTable({
                 >
                   <Eye size={14} />
                 </button>
+
               </div>
             </div>
           );
@@ -355,3 +378,4 @@ function ProductTable({
 }
 
 export default ProductTable;
+ 

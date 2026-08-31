@@ -764,13 +764,14 @@ function AllProducts() {
               </button>
             </div>
           ) : (
-            <ProductTable
-              products={filteredProducts}
-              onDelete={deleteProduct}
-              onEdit={handleEdit}
-              onView={handleView}
-              deletingId={deletingId}
-            />
+           <ProductTable
+  products={filteredProducts}
+  onDelete={deleteProduct}
+  onEdit={handleEdit}
+  onView={handleView}
+  deletingId={deletingId}
+  getImageUrl={getImageUrl}
+/>
           )}
 
           {/* =================================================
