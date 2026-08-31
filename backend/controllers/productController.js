@@ -1,30 +1,4 @@
 const Product = require("../models/Product");
-const fs = require("fs");
-const path = require("path");
-
-// =====================================================
-// HELPER: DELETE IMAGE FILE
-// =====================================================
-
-const deleteImageFile = (image) => {
-  if (!image) return;
-
-  try {
-    const cleanImage = image.replace(/^\/uploads\//, "");
-    const filePath = path.join(
-      __dirname,
-      "..",
-      "uploads",
-      cleanImage
-    );
-
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-    }
-  } catch (error) {
-    console.error("IMAGE DELETE ERROR:", error.message);
-  }
-};
 
 // =====================================================
 // GET ALL PRODUCTS
@@ -101,10 +75,7 @@ const getProductsByCategory = async (req, res) => {
       products,
     });
   } catch (error) {
-    console.error(
-      "GET CATEGORY PRODUCTS ERROR:",
-      error
-    );
+    console.error("GET CATEGORY PRODUCTS ERROR:", error);
 
     res.status(500).json({
       success: false,
@@ -184,12 +155,10 @@ const createProduct = async (req, res) => {
     }
 
     // -----------------------------
-    // IMAGE PATHS
+    // CLOUDINARY IMAGE URLS
     // -----------------------------
 
-    const images = req.files.map(
-      (file) => `/uploads/${file.filename}`
-    );
+    const images = req.files.map((file) => file.path);
 
     // -----------------------------
     // CREATE
@@ -201,9 +170,7 @@ const createProduct = async (req, res) => {
       price: Number(price),
       stock: Number(stock),
       images,
-      description: description
-        ? description.trim()
-        : "",
+      description: description ? description.trim() : "",
     });
 
     res.status(201).json({
@@ -237,9 +204,7 @@ const createProduct = async (req, res) => {
 
 const updateProduct = async (req, res) => {
   try {
-    const product = await Product.findById(
-      req.params.id
-    );
+    const product = await Product.findById(req.params.id);
 
     if (!product) {
       return res.status(404).json({
@@ -261,8 +226,7 @@ const updateProduct = async (req, res) => {
     }
 
     if (updateData.category) {
-      updateData.category =
-        updateData.category.trim();
+      updateData.category = updateData.category.trim();
     }
 
     if (
@@ -280,7 +244,7 @@ const updateProduct = async (req, res) => {
     }
 
     // -----------------------------
-    // NEW IMAGES
+    // NEW IMAGES (CLOUDINARY)
     // -----------------------------
 
     if (req.files && req.files.length > 0) {
@@ -291,32 +255,21 @@ const updateProduct = async (req, res) => {
         });
       }
 
-      // Delete old images
-      if (
-        product.images &&
-        product.images.length > 0
-      ) {
-        product.images.forEach(deleteImageFile);
-      }
-
-      updateData.images = req.files.map(
-        (file) => `/uploads/${file.filename}`
-      );
+      updateData.images = req.files.map((file) => file.path);
     }
 
     // -----------------------------
     // UPDATE
     // -----------------------------
 
-    const updatedProduct =
-      await Product.findByIdAndUpdate(
-        req.params.id,
-        updateData,
-        {
-          new: true,
-          runValidators: true,
-        }
-      );
+    const updatedProduct = await Product.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
 
     res.status(200).json({
       success: true,
@@ -341,22 +294,13 @@ const updateProduct = async (req, res) => {
 
 const deleteProduct = async (req, res) => {
   try {
-    const product =
-      await Product.findByIdAndDelete(req.params.id);
+    const product = await Product.findByIdAndDelete(req.params.id);
 
     if (!product) {
       return res.status(404).json({
         success: false,
         message: "Product not found",
       });
-    }
-
-    // Delete images
-    if (
-      product.images &&
-      product.images.length > 0
-    ) {
-      product.images.forEach(deleteImageFile);
     }
 
     res.status(200).json({
