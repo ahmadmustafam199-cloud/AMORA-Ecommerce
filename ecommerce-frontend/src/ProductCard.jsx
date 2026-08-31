@@ -20,11 +20,11 @@ import { useCart } from "./useCart";
 const API_URL = "https://amora-backend-lake.vercel.app";
 
 // =====================================================
-// IMAGE URL HELPER
+// IMAGE URL HELPER (UPDATED SAFE CHECK)
 // =====================================================
 
 const getImageUrl = (image) => {
-  if (!image) return "";
+  if (!image || typeof image !== "string") return "";
 
   if (
     image.startsWith("http://") ||
@@ -56,29 +56,6 @@ const fetchProductsFromAPI = async () => {
       data.message || "Failed to fetch products"
     );
   }
-
-  /*
-    Backend currently returns:
-
-    [
-      product1,
-      product2,
-      product3
-    ]
-
-    This also supports:
-
-    {
-      success: true,
-      products: [...]
-    }
-
-    or:
-
-    {
-      data: [...]
-    }
-  */
 
   if (Array.isArray(data)) {
     return data;
