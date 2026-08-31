@@ -1,20 +1,8 @@
 {
-  "builds": [
+  "rewrites": [
     {
-      "src": "ecommerce-frontend/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "ecommerce-frontend/dist"
-      }
-    }
-  ],
-  "routes": [
-    {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/ecommerce-frontend/index.html"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
