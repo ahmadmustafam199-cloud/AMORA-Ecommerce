@@ -1,0 +1,17 @@
+{
+  "builds": [
+    {
+      "src": "ecommerce-frontend/package.json",
+      "use": "@vercel/vite"
+    }
+  ],
+  "routes": [
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/ecommerce-frontend/index.html"
+    }
+  ]
+}
