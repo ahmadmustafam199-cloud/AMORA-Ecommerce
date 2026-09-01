@@ -1,4 +1,29 @@
 const Product = require("../models/Product");
+const cloudinary = require("../config/cloudinary");
+
+// =====================================================
+// CLOUDINARY UPLOAD HELPER
+// =====================================================
+
+const uploadToCloudinary = (fileBuffer) => {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: "amora/products",
+        resource_type: "image",
+      },
+      (error, result) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(result);
+        }
+      }
+    );
+
+    uploadStream.end(fileBuffer);
+  });
+};
 
 // =====================================================
 // GET ALL PRODUCTS
@@ -75,7 +100,10 @@ const getProductsByCategory = async (req, res) => {
       products,
     });
   } catch (error) {
-    console.error("GET CATEGORY PRODUCTS ERROR:", error);
+    console.error(
+      "GET CATEGORY PRODUCTS ERROR:",
+      error
+    );
 
     res.status(500).json({
       success: false,
@@ -100,9 +128,9 @@ const createProduct = async (req, res) => {
       description,
     } = req.body;
 
-    // -----------------------------
+    // =================================================
     // VALIDATION
-    // -----------------------------
+    // =================================================
 
     if (!name || !name.trim()) {
       return res.status(400).json({
@@ -154,23 +182,33 @@ const createProduct = async (req, res) => {
       });
     }
 
-    // -----------------------------
-    // CLOUDINARY IMAGE URLS
-    // -----------------------------
+    // =================================================
+    // UPLOAD IMAGES TO CLOUDINARY
+    // =================================================
 
-    const images = req.files.map((file) => file.path);
+    const uploadedImages = await Promise.all(
+      req.files.map(async (file) => {
+        const result = await uploadToCloudinary(
+          file.buffer
+        );
 
-    // -----------------------------
-    // CREATE
-    // -----------------------------
+        return result.secure_url;
+      })
+    );
+
+    // =================================================
+    // CREATE PRODUCT
+    // =================================================
 
     const product = await Product.create({
       name: name.trim(),
       category: category.trim(),
       price: Number(price),
       stock: Number(stock),
-      images,
-      description: description ? description.trim() : "",
+      images: uploadedImages,
+      description: description
+        ? description.trim()
+        : "",
     });
 
     res.status(201).json({
@@ -179,7 +217,10 @@ const createProduct = async (req, res) => {
       product,
     });
   } catch (error) {
-    console.error("CREATE PRODUCT ERROR:", error);
+    console.error(
+      "CREATE PRODUCT ERROR:",
+      error
+    );
 
     if (error.name === "ValidationError") {
       return res.status(400).json({
@@ -204,7 +245,9 @@ const createProduct = async (req, res) => {
 
 const updateProduct = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const product = await Product.findById(
+      req.params.id
+    );
 
     if (!product) {
       return res.status(404).json({
@@ -217,67 +260,93 @@ const updateProduct = async (req, res) => {
       ...req.body,
     };
 
-    // -----------------------------
+    // =================================================
     // CLEAN VALUES
-    // -----------------------------
+    // =================================================
 
     if (updateData.name) {
-      updateData.name = updateData.name.trim();
+      updateData.name =
+        updateData.name.trim();
     }
 
     if (updateData.category) {
-      updateData.category = updateData.category.trim();
+      updateData.category =
+        updateData.category.trim();
     }
 
     if (
       updateData.price !== undefined &&
       updateData.price !== ""
     ) {
-      updateData.price = Number(updateData.price);
+      updateData.price =
+        Number(updateData.price);
     }
 
     if (
       updateData.stock !== undefined &&
       updateData.stock !== ""
     ) {
-      updateData.stock = Number(updateData.stock);
+      updateData.stock =
+        Number(updateData.stock);
     }
 
-    // -----------------------------
-    // NEW IMAGES (CLOUDINARY)
-    // -----------------------------
+    // =================================================
+    // NEW IMAGES
+    // =================================================
 
-    if (req.files && req.files.length > 0) {
+    if (
+      req.files &&
+      req.files.length > 0
+    ) {
       if (req.files.length > 7) {
         return res.status(400).json({
           success: false,
-          message: "Maximum 7 images are allowed",
+          message:
+            "Maximum 7 images are allowed",
         });
       }
 
-      updateData.images = req.files.map((file) => file.path);
+      const uploadedImages =
+        await Promise.all(
+          req.files.map(async (file) => {
+            const result =
+              await uploadToCloudinary(
+                file.buffer
+              );
+
+            return result.secure_url;
+          })
+        );
+
+      updateData.images =
+        uploadedImages;
     }
 
-    // -----------------------------
-    // UPDATE
-    // -----------------------------
+    // =================================================
+    // UPDATE PRODUCT
+    // =================================================
 
-    const updatedProduct = await Product.findByIdAndUpdate(
-      req.params.id,
-      updateData,
-      {
-        new: true,
-        runValidators: true,
-      }
-    );
+    const updatedProduct =
+      await Product.findByIdAndUpdate(
+        req.params.id,
+        updateData,
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
 
     res.status(200).json({
       success: true,
-      message: "Product updated successfully",
+      message:
+        "Product updated successfully",
       product: updatedProduct,
     });
   } catch (error) {
-    console.error("UPDATE PRODUCT ERROR:", error);
+    console.error(
+      "UPDATE PRODUCT ERROR:",
+      error
+    );
 
     res.status(500).json({
       success: false,
@@ -294,7 +363,10 @@ const updateProduct = async (req, res) => {
 
 const deleteProduct = async (req, res) => {
   try {
-    const product = await Product.findByIdAndDelete(req.params.id);
+    const product =
+      await Product.findByIdAndDelete(
+        req.params.id
+      );
 
     if (!product) {
       return res.status(404).json({
@@ -305,10 +377,14 @@ const deleteProduct = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Product deleted successfully",
+      message:
+        "Product deleted successfully",
     });
   } catch (error) {
-    console.error("DELETE PRODUCT ERROR:", error);
+    console.error(
+      "DELETE PRODUCT ERROR:",
+      error
+    );
 
     res.status(500).json({
       success: false,
@@ -317,6 +393,10 @@ const deleteProduct = async (req, res) => {
     });
   }
 };
+
+// =====================================================
+// EXPORT
+// =====================================================
 
 module.exports = {
   getProducts,
