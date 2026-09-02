@@ -214,9 +214,9 @@ function ProductCard({
   // =====================================================
 
   const handleAddToCart = (product) => {
-    const productId =
-      product._id ||
-      product.id;
+    // IMPORTANT:
+    // Always use MongoDB _id for product identification
+    const productId = product._id;
 
     const existingProduct =
       cart.find(
@@ -660,11 +660,16 @@ function ProductCard({
         {filteredProducts.map(
           (product) => {
 
+            // =================================================
+            // IMPORTANT FIX:
+            // Use ONLY MongoDB _id
+            // =================================================
+
             const productId =
-              product._id ||
-              product.id;
+              product._id;
 
             // SAFE IMAGE SELECTION
+
             const image =
               typeof product.image === "string" &&
               product.image.trim()
@@ -830,11 +835,19 @@ function ProductCard({
 
                       <button
                         type="button"
-                        onClick={() =>
+                        onClick={() => {
+                          if (!product._id) {
+                            console.error(
+                              "MongoDB _id is missing:",
+                              product
+                            );
+                            return;
+                          }
+
                           navigate(
-                            `/product/${productId}`
-                          )
-                        }
+                            `/product/${product._id}`
+                          );
+                        }}
                         className="flex h-8 w-full items-center justify-center gap-2 rounded-lg bg-white px-3 py-2 text-[9px] font-black text-gray-900 shadow-lg transition hover:bg-orange-500 hover:text-white"
                       >
 
