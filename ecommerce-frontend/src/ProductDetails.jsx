@@ -1,4 +1,5 @@
-import { useState } from "react";
+ 
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import {
@@ -18,213 +19,136 @@ import {
 
 import { useCart } from "./useCart";
 
-const products = [
-  {
-    id: 1,
-    name: "Smart Watch Series 7",
-    category: "Electronics",
-    price: "PKR 24,999",
-    oldPrice: "PKR 31,999",
-    discount: "-20%",
-    rating: 4.8,
-    reviews: 124,
-    stock: "In Stock",
-    description:
-      "Premium smart watch with fitness tracking, heart-rate monitoring, notifications and a beautiful AMOLED display. Designed for everyday performance, fitness and modern lifestyle.",
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQQHQB5xUdDL-l9mxXxlbp87e58TBP0VRohhOuAlU4X9Q&s=10",
-  },
+// =====================================================
+// DEPLOYED BACKEND URL
+// =====================================================
 
-  {
-    id: 2,
-    name: "Men Casual T-Shirt",
-    category: "Fashion",
-    price: "PKR 2,249",
-    oldPrice: "PKR 2,499",
-    discount: "-10%",
-    rating: 4.6,
-    reviews: 89,
-    stock: "In Stock",
-    description:
-      "Comfortable premium cotton casual t-shirt with a modern fit. Perfect for everyday wear and casual occasions.",
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTJGr0Mhxvj7HqMZTjXlw8_TUS8WawtBQLym2NyiEwYUA&s=10",
-  },
+const API_URL = "https://amora-backend-lake.vercel.app";
 
-  {
-    id: 3,
-    name: "English Willow Bat",
-    category: "Sports",
-    price: "PKR 58,499",
-    oldPrice: "PKR 99,999",
-    discount: "-15%",
-    rating: 4.9,
-    reviews: 76,
-    stock: "In Stock",
-    description:
-      "Professional English Willow cricket bat designed for excellent power, balance and performance. Perfectly balanced for professional and competitive players.",
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT2f54_okVCTZp2vH2th_leb8PhsMeF9DgBZ2xusPjXvg&s=10",
-  },
+// =====================================================
+// IMAGE URL HELPER
+// =====================================================
 
-  {
-    id: 4,
-    name: "Kitchen Appliances Set",
-    category: "Home & Kitchen",
-    price: "PKR 12,999",
-    oldPrice: "PKR 17,499",
-    discount: "-25%",
-    rating: 4.7,
-    reviews: 63,
-    stock: "In Stock",
-    description:
-      "Complete kitchen appliance set with modern design, durable construction and convenient features for your everyday kitchen needs.",
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRQOmVm0_J5ffFOSd2rK8uDsC1dXulrGpqwQyO3N_DYMg&s=10",
-  },
+const getImageUrl = (image) => {
+  if (!image || typeof image !== "string") {
+    return "";
+  }
 
-  {
-    id: 5,
-    name: "Nike Air Max 270",
-    category: "Shoes",
-    price: "PKR 24,199",
-    oldPrice: "PKR 35,999",
-    discount: "-30%",
-    rating: 4.8,
-    reviews: 215,
-    stock: "In Stock",
-    description:
-      "Stylish and comfortable sports shoes featuring responsive cushioning and a modern athletic design. Perfect for sports, walking and everyday use.",
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCYAAO0RuSAWHCbQaX2pVBwmJX-FuDyhxP3QtV5M4DVQ&s=10",
-  },
+  const cleanImage = image.trim();
 
-  {
-    id: 6,
-    name: "Iphone 16 Pro Max",
-    category: "Phones",
-    price: "PKR 99,499",
-    oldPrice: "PKR 112,999",
-    discount: "-12%",
-    rating: 4.9,
-    reviews: 342,
-    stock: "In Stock",
-    description:
-      "Flagship smartphone featuring a powerful processor, premium camera system and stunning display. Built for high performance and an exceptional mobile experience.",
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcROpLB32gV9-aHQiSvGtprFFXNqt_XcK_1bT4JB-5KMfA&s=10",
-  },
+  if (!cleanImage) {
+    return "";
+  }
 
-  {
-    id: 7,
-    name: "Premium Logo Cap",
-    category: "Accessories",
-    price: "PKR 1,999",
-    oldPrice: "PKR 2,500",
-    discount: "-12%",
-    rating: 4.5,
-    reviews: 48,
-    stock: "In Stock",
-    description:
-      "Premium quality logo cap with comfortable fitting and stylish design for everyday use.",
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT77Gwg4kdQiOyueNTc4emEu4E4jYeHg-VFCQEZ_djI8A&s",
-  },
+  if (
+    cleanImage.startsWith("http://") ||
+    cleanImage.startsWith("https://")
+  ) {
+    return cleanImage;
+  }
 
-  {
-    id: 8,
-    name: "Dell OptiPlex Core i5",
-    category: "Computer",
-    price: "PKR 85,000",
-    oldPrice: "PKR 90,000",
-    discount: "-10%",
-    rating: 4.6,
-    reviews: 91,
-    stock: "In Stock",
-    description:
-      "Reliable Dell desktop computer powered by Intel Core i5, ideal for office work, business and everyday computing.",
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRmyoqfUJ7yV1n9LxSSThnXsi9AUR2JHLfeXdWvkVaizg&s=10",
-  },
+  if (cleanImage.startsWith("/")) {
+    return `${API_URL}${cleanImage}`;
+  }
 
-  {
-    id: 9,
-    name: "Oud Wood",
-    category: "Beauty",
-    price: "PKR 75,000",
-    oldPrice: "PKR 82,500",
-    discount: "-14%",
-    rating: 4.9,
-    reviews: 157,
-    stock: "In Stock",
-    description:
-      "Luxurious oud fragrance with a rich and long-lasting scent designed for a sophisticated and elegant experience.",
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQPzdUq88ZsYzgoDDSPI-YVuLlGiHLCIDtRE7i5cSR0vg&s=10",
-  },
+  return `${API_URL}/${cleanImage}`;
+};
 
-  {
-    id: 10,
-    name: "BMW Remote Control Car",
-    category: "Toys",
-    price: "PKR 8,000",
-    oldPrice: "PKR 9,250",
-    discount: "-14%",
-    rating: 4.7,
-    reviews: 72,
-    stock: "In Stock",
-    description:
-      "Realistic BMW remote control car with smooth controls, stylish design and an exciting driving experience.",
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcROLDhyd4h-qd7lZWwyiSu3EnaYjXjxeZmPNw3fUDuPkQ&s=10",
-  },
-
-  {
-    id: 11,
-    name: "Premium Travel Bag",
-    category: "Bags",
-    price: "PKR 18,000",
-    oldPrice: "PKR 19,500",
-    discount: "-15%",
-    rating: 4.6,
-    reviews: 54,
-    stock: "In Stock",
-    description:
-      "Premium travel bag with spacious compartments, durable material and a stylish modern look.",
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRen09Tnx9RI1qQnUZn8ql2s3LlcFor4b_p-Yzgxl-fOw&s=10",
-  },
-
-  {
-    id: 12,
-    name: "Apple AirPods 4",
-    category: "Electronics",
-    price: "PKR 45,000",
-    oldPrice: "PKR 55,000",
-    discount: "-12%",
-    rating: 4.8,
-    reviews: 267,
-    stock: "In Stock",
-    description:
-      "Wireless earbuds with excellent sound quality, comfortable fit, clear calls and a compact charging case.",
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzkwuPkmcHtkthJZSTSmVcSGnMpnFDCGsIC9jZ1pH7OA&s=10",
-  },
-];
+// =====================================================
+// PRODUCT DETAILS
+// =====================================================
 
 function ProductDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addToCart } = useCart();
 
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(() => Boolean(id));
+  const [apiError, setApiError] = useState("");
+
   const [quantity, setQuantity] = useState(1);
   const [wishlist, setWishlist] = useState(false);
   const [added, setAdded] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
 
-  const product = products.find(
-    (item) => item.id === Number(id)
-  );
+  // =====================================================
+  // FETCH SINGLE PRODUCT FROM BACKEND
+  // =====================================================
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchProduct = async () => {
+      try {
+        setLoading(true);
+        setApiError("");
+
+        const response = await fetch(
+          `${API_URL}/api/products/${id}`
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.message || "Product not found"
+          );
+        }
+
+        const fetchedProduct =
+          data.product ||
+          data.data ||
+          data;
+
+        if (cancelled) return;
+
+        setProduct(fetchedProduct);
+      } catch (error) {
+        console.error(
+          "Product Details Error:",
+          error
+        );
+
+        if (cancelled) return;
+
+        setProduct(null);
+        setApiError(
+          "The product could not be loaded."
+        );
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    if (id) {
+      fetchProduct();
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
+
+  // =====================================================
+  // LOADING
+  // =====================================================
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[70vh] items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-orange-500" />
+
+          <p className="mt-4 text-sm font-semibold text-gray-500">
+            Loading product...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   // =====================================================
   // PRODUCT NOT FOUND
@@ -245,7 +169,8 @@ function ProductDetails() {
           </h1>
 
           <p className="mt-2 text-xs text-gray-500">
-            The product you are looking for does not exist.
+            {apiError ||
+              "The product you are looking for does not exist."}
           </p>
 
           <button
@@ -261,26 +186,58 @@ function ProductDetails() {
   }
 
   // =====================================================
-  // PRODUCT IMAGES
+  // PRODUCT DATA
   // =====================================================
 
+  const productId =
+    product._id || product.id;
+
   const productImages =
-    product.images && product.images.length > 0
+    Array.isArray(product.images) &&
+    product.images.length > 0
       ? product.images.slice(0, 4)
-      : [
+      : product.image
+      ? [
           product.image,
           product.image,
           product.image,
           product.image,
-        ];
+        ]
+      : [];
+
+  const currentImage =
+    productImages[selectedImage] ||
+    productImages[0] ||
+    "";
+
+  const rating = Math.min(
+    5,
+    Math.max(
+      0,
+      Number(product.rating || 5)
+    )
+  );
+
+  const stockNumber = Number(
+    product.stock || 0
+  );
 
   // =====================================================
   // ADD TO CART
   // =====================================================
 
   const handleAddToCart = () => {
+    const cartProduct = {
+      ...product,
+      image:
+        product.image ||
+        (Array.isArray(product.images)
+          ? product.images[0] || ""
+          : ""),
+    };
+
     for (let i = 0; i < quantity; i++) {
-      addToCart(product);
+      addToCart(cartProduct);
     }
 
     setAdded(true);
@@ -304,7 +261,9 @@ function ProductDetails() {
   // =====================================================
 
   const handleReviews = () => {
-    navigate(`/product/${product.id}/reviews`);
+    navigate(
+      `/product/${productId}/reviews`
+    );
   };
 
   return (
@@ -327,7 +286,9 @@ function ProductDetails() {
 
           <ChevronRight size={13} />
 
-          <span>{product.category}</span>
+          <span>
+            {product.category || "Product"}
+          </span>
 
           <ChevronRight size={13} />
 
@@ -354,7 +315,7 @@ function ProductDetails() {
               {/* Discount */}
 
               <div className="absolute left-5 top-5 z-20 rounded-full bg-red-500 px-3 py-1.5 text-[10px] font-bold text-white shadow-md">
-                {product.discount}
+                {product.discount || "SALE"}
               </div>
 
               {/* Wishlist */}
@@ -378,20 +339,31 @@ function ProductDetails() {
               {/* Main Image */}
 
               <div className="group flex h-80 items-center justify-center overflow-hidden rounded-2xl bg-white">
- 
-               <img
-               src={productImages[selectedImage]}
-               alt={product.name}
-               className="
-               h-64 w-64
-               object-contain
-               transition-all
-               duration-700
-               ease-out
-               group-hover:scale-125
-               group-hover:rotate-1
-               "
-               />
+
+                {getImageUrl(currentImage) ? (
+                  <img
+                    src={getImageUrl(currentImage)}
+                    alt={product.name}
+                    className="
+                    h-64 w-64
+                    object-contain
+                    transition-all
+                    duration-700
+                    ease-out
+                    group-hover:scale-125
+                    group-hover:rotate-1
+                    "
+                    onError={(e) => {
+                      e.currentTarget.style.display =
+                        "none";
+                    }}
+                  />
+                ) : (
+                  <ShoppingCart
+                    size={50}
+                    className="text-gray-300"
+                  />
+                )}
 
               </div>
 
@@ -414,7 +386,7 @@ function ProductDetails() {
                     >
 
                       <img
-                        src={image}
+                        src={getImageUrl(image)}
                         alt={`${product.name} ${
                           index + 1
                         }`}
@@ -440,7 +412,8 @@ function ProductDetails() {
               <div className="flex items-center gap-2">
 
                 <span className="rounded-full bg-orange-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-orange-600">
-                  {product.category}
+                  {product.category ||
+                    "Product"}
                 </span>
 
                 <span className="text-[10px] text-gray-400">
@@ -472,9 +445,7 @@ function ProductDetails() {
                         size={15}
                         className={
                           star <=
-                          Math.round(
-                            product.rating
-                          )
+                          Math.round(rating)
                             ? "fill-yellow-400 text-yellow-400"
                             : "text-gray-300"
                         }
@@ -487,7 +458,7 @@ function ProductDetails() {
                 {/* Rating Number */}
 
                 <span className="text-xs font-bold text-gray-900">
-                  {product.rating}
+                  {rating.toFixed(1)}
                 </span>
 
                 <span className="text-gray-300">
@@ -502,7 +473,7 @@ function ProductDetails() {
                 >
                   <MessageSquare size={13} />
 
-                  {product.reviews} Reviews
+                  {product.reviews || 0} Reviews
 
                 </button>
 
@@ -515,15 +486,23 @@ function ProductDetails() {
               <div className="mt-2 flex flex-wrap items-center gap-2">
 
                 <span className="text-[20px] font-bold text-gray-900">
-                  {product.price}
+                  PKR{" "}
+                  {Number(
+                    product.price || 0
+                  ).toLocaleString()}
                 </span>
 
-                <span className="text-sm text-gray-400 line-through">
-                  {product.oldPrice}
-                </span>
+                {product.oldPrice && (
+                  <span className="text-sm text-gray-400 line-through">
+                    PKR{" "}
+                    {Number(
+                      product.oldPrice
+                    ).toLocaleString()}
+                  </span>
+                )}
 
                 <span className="rounded-full bg-green-100 px-2.5 py-1 text-[10px] font-bold text-green-700">
-                  Save {product.discount}
+                  Save {product.discount || "SALE"}
                 </span>
 
               </div>
@@ -534,10 +513,24 @@ function ProductDetails() {
 
               <div className="mt-2 flex items-center gap-2">
 
-                <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                <span
+                  className={`h-1.5 w-1.5 rounded-full ${
+                    stockNumber > 0
+                      ? "bg-green-500"
+                      : "bg-red-500"
+                  }`}
+                />
 
-                <span className="text-xs font-semibold text-green-600">
-                  {product.stock}
+                <span
+                  className={`text-xs font-semibold ${
+                    stockNumber > 0
+                      ? "text-green-600"
+                      : "text-red-500"
+                  }`}
+                >
+                  {stockNumber > 0
+                    ? `${stockNumber} In Stock`
+                    : "Out of Stock"}
                 </span>
 
               </div>
@@ -555,7 +548,8 @@ function ProductDetails() {
                 </h2>
 
                 <p className="mt-1 text-[13px] leading-5 text-gray-600">
-                  {product.description}
+                  {product.description ||
+                    "Premium quality product designed for everyday use."}
                 </p>
 
               </div>
@@ -615,7 +609,12 @@ function ProductDetails() {
 
                 <button
                   onClick={handleAddToCart}
-                  className="flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-orange-500 px-4 py-3 text-xs font-bold text-white shadow-md shadow-orange-500/20 transition-all hover:-translate-y-0.5 hover:bg-orange-600"
+                  disabled={stockNumber === 0}
+                  className={`flex cursor-pointer items-center justify-center gap-2 rounded-lg px-4 py-3 text-xs font-bold text-white shadow-md transition-all ${
+                    stockNumber === 0
+                      ? "cursor-not-allowed bg-gray-400"
+                      : "bg-orange-500 shadow-orange-500/20 hover:-translate-y-0.5 hover:bg-orange-600"
+                  }`}
                 >
 
                   {added ? (
@@ -636,7 +635,12 @@ function ProductDetails() {
 
                 <button
                   onClick={handleBuyNow}
-                  className="cursor-pointer rounded-lg bg-gray-900 px-4 py-3 text-xs font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-black"
+                  disabled={stockNumber === 0}
+                  className={`cursor-pointer rounded-lg px-4 py-3 text-xs font-bold text-white transition-all ${
+                    stockNumber === 0
+                      ? "cursor-not-allowed bg-gray-400"
+                      : "bg-gray-900 hover:-translate-y-0.5 hover:bg-black"
+                  }`}
                 >
                   Buy Now
                 </button>
@@ -725,7 +729,6 @@ function ProductDetails() {
 
         {/* =================================================
             SEPARATE REVIEWS CTA
-            Reviews content yahan nahi hai.
         ================================================= */}
 
         <div className="mt-6 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-lg">
@@ -783,3 +786,4 @@ function ProductDetails() {
 }
 
 export default ProductDetails;
+ 
