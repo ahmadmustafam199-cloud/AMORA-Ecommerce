@@ -5,7 +5,7 @@ const CATEGORIES = [
       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSFMDc3gUpBtwQ-DwnjeuC_rvkgSYNY3k39QmodZeMlrA&s=10",
   },
   {
-    name: "Fashion",
+    name: "Clothes",
     image:
       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRSk0Qn8Q4D39iSMGLxBtYw-WMpCUCJlK4jWP8cFP5-sA&s=10",
   },
