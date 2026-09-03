@@ -6,6 +6,12 @@ const cors = require("cors");
 const path = require("path");
 
 // =====================================================
+// MODELS
+// =====================================================
+
+const Product = require("./models/Product");
+
+// =====================================================
 // ROUTES
 // =====================================================
 
@@ -56,12 +62,16 @@ app.use(
 let cachedDb = null;
 
 const connectDB = async () => {
-  if (cachedDb && mongoose.connection.readyState === 1) {
+  if (
+    cachedDb &&
+    mongoose.connection.readyState === 1
+  ) {
     return cachedDb;
   }
 
   const mongoURI =
-    process.env.MONGO_URI || process.env.MONGODB_URI;
+    process.env.MONGO_URI ||
+    process.env.MONGODB_URI;
 
   if (!mongoURI) {
     throw new Error(
@@ -121,9 +131,79 @@ app.use(async (req, res, next) => {
 app.get("/", (req, res) => {
   res.status(200).json({
     success: true,
-    message: "AMORA E-Commerce API is running",
+    message:
+      "AMORA E-Commerce API is running",
   });
 });
+
+// =====================================================
+// DYNAMIC PRODUCT SITEMAP
+// =====================================================
+
+app.get(
+  "/sitemap-products.xml",
+  async (req, res) => {
+    try {
+      // Get all products from MongoDB
+      const products = await Product.find({})
+        .select("_id updatedAt")
+        .sort({ updatedAt: -1 })
+        .lean();
+
+      // Frontend website URL
+     const SITE_URL =
+     process.env.FRONTEND_URL ||
+     "https://amora-ecommerce.vercel.app";
+
+      // Generate product URLs
+      const productUrls = products
+        .map((product) => {
+          const productId =
+            product._id.toString();
+
+          const lastModified =
+            product.updatedAt
+              ? new Date(
+                  product.updatedAt
+                ).toISOString()
+              : new Date().toISOString();
+
+          return `
+  <url>
+    <loc>${SITE_URL}/product/${productId}</loc>
+    <lastmod>${lastModified}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>`;
+        })
+        .join("");
+
+      // Complete XML sitemap
+      const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+>
+${productUrls}
+</urlset>`;
+
+      res.set(
+        "Content-Type",
+        "application/xml; charset=utf-8"
+      );
+
+      res.status(200).send(sitemap);
+    } catch (error) {
+      console.error(
+        "Product Sitemap Error:",
+        error.message
+      );
+
+      res.status(500).send(
+        "Unable to generate product sitemap"
+      );
+    }
+  }
+);
 
 // =====================================================
 // API ROUTES
