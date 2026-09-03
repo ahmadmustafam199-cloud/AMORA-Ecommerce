@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /products
+Disallow: /all-products
+Disallow: /AddProduct
+Disallow: /add-product
+Disallow: /orders
+Disallow: /cart
+Disallow: /checkout
+Disallow: /order-success
+
+Sitemap: https://YOUR-DOMAIN.com/sitemap.xml
