@@ -1,3 +1,4 @@
+ 
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -15,16 +16,30 @@ import {
 // BACKEND URL
 // =====================================================
 
-const API_URL =
-  import.meta.env.VITE_API_URL ||
-  "https://amora-backend-lake.vercel.app";
+const API_URL = "https://amora-backend-lake.vercel.app";
+
+// =====================================================
+// SAFE JSON HELPER
+// =====================================================
+
+const getJsonResponse = async (response) => {
+  const contentType =
+    response.headers.get("content-type") || "";
+
+  if (!contentType.includes("application/json")) {
+    throw new Error(
+      `Server returned ${response.status} ${response.statusText}.`
+    );
+  }
+
+  return response.json();
+};
 
 // =====================================================
 // SAFE IMAGE URL HELPER
 // =====================================================
 
 const getImageUrl = (image) => {
-  // Prevent null / undefined / non-string errors
   if (!image || typeof image !== "string") {
     return "";
   }
@@ -35,7 +50,6 @@ const getImageUrl = (image) => {
     return "";
   }
 
-  // Complete URL
   if (
     cleanImage.startsWith("http://") ||
     cleanImage.startsWith("https://")
@@ -43,12 +57,10 @@ const getImageUrl = (image) => {
     return cleanImage;
   }
 
-  // Relative URL
   if (cleanImage.startsWith("/")) {
     return `${API_URL}${cleanImage}`;
   }
 
-  // Filename/path
   return `${API_URL}/${cleanImage}`;
 };
 
@@ -68,10 +80,10 @@ function Reviews() {
   const [reviews, setReviews] = useState([]);
 
   const [loadingProduct, setLoadingProduct] =
-    useState(true);
+    useState(Boolean(id));
 
   const [loadingReviews, setLoadingReviews] =
-    useState(true);
+    useState(Boolean(id));
 
   // =====================================================
   // FORM STATE
@@ -99,30 +111,25 @@ function Reviews() {
 
     const loadData = async () => {
       try {
-        const [productResponse, reviewsResponse] =
-          await Promise.all([
-            fetch(`${API_URL}/api/products/${id}`),
-            fetch(`${API_URL}/api/reviews/${id}`),
-          ]);
+        setLoadingProduct(true);
+        setLoadingReviews(true);
+        setError("");
+
+        // =================================================
+        // LOAD PRODUCT
+        // =================================================
+
+        const productResponse = await fetch(
+          `${API_URL}/api/products/${id}`
+        );
 
         const productData =
-          await productResponse.json();
-
-        const reviewsData =
-          await reviewsResponse.json();
-
-        if (ignore) {
-          return;
-        }
-
-        // =================================================
-        // PRODUCT
-        // =================================================
+          await getJsonResponse(productResponse);
 
         if (!productResponse.ok) {
           throw new Error(
             productData.message ||
-              "Product not found"
+              "Product not found."
           );
         }
 
@@ -131,25 +138,49 @@ function Reviews() {
           productData.data ||
           productData;
 
-        setProduct(productResult);
+        if (!ignore) {
+          setProduct(productResult);
+          setLoadingProduct(false);
+        }
 
         // =================================================
-        // REVIEWS
+        // LOAD REVIEWS
         // =================================================
 
-        if (
-          reviewsResponse.ok &&
-          reviewsData.success
-        ) {
-          setReviews(
-            Array.isArray(
-              reviewsData.reviews
-            )
-              ? reviewsData.reviews
-              : []
+        try {
+          const reviewsResponse = await fetch(
+            `${API_URL}/api/reviews/${id}`
           );
-        } else {
-          setReviews([]);
+
+          const reviewsData =
+            await getJsonResponse(reviewsResponse);
+
+          if (
+            !ignore &&
+            reviewsResponse.ok &&
+            reviewsData.success
+          ) {
+            setReviews(
+              Array.isArray(reviewsData.reviews)
+                ? reviewsData.reviews
+                : []
+            );
+          } else if (!ignore) {
+            setReviews([]);
+          }
+        } catch (reviewError) {
+          console.error(
+            "Load Reviews Error:",
+            reviewError
+          );
+
+          if (!ignore) {
+            setReviews([]);
+          }
+        }
+
+        if (!ignore) {
+          setLoadingReviews(false);
         }
       } catch (error) {
         if (!ignore) {
@@ -160,9 +191,12 @@ function Reviews() {
 
           setProduct(null);
           setReviews([]);
-        }
-      } finally {
-        if (!ignore) {
+
+          setError(
+            error.message ||
+              "This product could not be loaded."
+          );
+
           setLoadingProduct(false);
           setLoadingReviews(false);
         }
@@ -214,11 +248,7 @@ function Reviews() {
     // PHONE VALIDATION
     // =================================================
 
-    if (
-      !/^03[0-9]{9}$/.test(
-        phone.trim()
-      )
-    ) {
+    if (!/^03[0-9]{9}$/.test(phone.trim())) {
       setError(
         "Please enter a valid Pakistani phone number."
       );
@@ -261,27 +291,21 @@ function Reviews() {
 
           body: JSON.stringify({
             productId: id,
-
-            email: email
-              .trim()
-              .toLowerCase(),
-
+            email: email.trim().toLowerCase(),
             phone: phone.trim(),
-
             rating: Number(rating),
-
             comment: comment.trim(),
           }),
         }
       );
 
       const data =
-        await response.json();
+        await getJsonResponse(response);
 
       if (!response.ok) {
         throw new Error(
           data.message ||
-            "Failed to submit review"
+            "Failed to submit review."
         );
       }
 
@@ -301,28 +325,39 @@ function Reviews() {
       // RELOAD REVIEWS
       // =================================================
 
-      const reviewsResponse =
-        await fetch(
+      try {
+        const reviewsResponse = await fetch(
           `${API_URL}/api/reviews/${id}`
         );
 
-      const reviewsData =
-        await reviewsResponse.json();
+        const reviewsData =
+          await getJsonResponse(
+            reviewsResponse
+          );
 
-      if (
-        reviewsResponse.ok &&
-        reviewsData.success
-      ) {
-        setReviews(
-          Array.isArray(
-            reviewsData.reviews
-          )
-            ? reviewsData.reviews
-            : []
+        if (
+          reviewsResponse.ok &&
+          reviewsData.success
+        ) {
+          setReviews(
+            Array.isArray(
+              reviewsData.reviews
+            )
+              ? reviewsData.reviews
+              : []
+          );
+        }
+      } catch (reviewError) {
+        console.error(
+          "Reload Reviews Error:",
+          reviewError
         );
       }
 
-      // Hide success message
+      // =================================================
+      // HIDE SUCCESS MESSAGE
+      // =================================================
+
       setTimeout(() => {
         setSuccess(false);
       }, 4000);
@@ -334,7 +369,7 @@ function Reviews() {
 
       setError(
         error.message ||
-          "Failed to submit review"
+          "Failed to submit review."
       );
     } finally {
       setSubmitting(false);
@@ -367,6 +402,7 @@ function Reviews() {
     return (
       <div className="flex min-h-[70vh] items-center justify-center bg-gray-50 px-4">
         <div className="text-center">
+
           <ShoppingCart
             size={40}
             className="mx-auto text-gray-300"
@@ -377,7 +413,8 @@ function Reviews() {
           </h1>
 
           <p className="mt-2 text-sm text-gray-500">
-            This product could not be loaded.
+            {error ||
+              "This product could not be loaded."}
           </p>
 
           <button
@@ -387,6 +424,7 @@ function Reviews() {
           >
             Back To Home
           </button>
+
         </div>
       </div>
     );
@@ -412,9 +450,7 @@ function Reviews() {
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-6 md:px-7 lg:px-10">
 
-      {/* =================================================
-          BACK BUTTON
-      ================================================= */}
+      {/* BACK BUTTON */}
 
       <button
         type="button"
@@ -424,29 +460,23 @@ function Reviews() {
         className="mb-5 flex items-center gap-2 text-xs font-semibold text-gray-600 transition hover:text-orange-500"
       >
         <ArrowLeft size={15} />
-
         Back To Product
       </button>
 
-      {/* =================================================
-          PRODUCT HEADER
-      ================================================= */}
+      {/* PRODUCT HEADER */}
 
       <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-lg">
+
         <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:p-6">
 
           {/* PRODUCT IMAGE */}
 
           <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gray-50">
+
             {productImage ? (
               <img
-                src={getImageUrl(
-                  productImage
-                )}
-                alt={
-                  product.name ||
-                  "Product"
-                }
+                src={getImageUrl(productImage)}
+                alt={product.name || "Product"}
                 className="h-20 w-20 object-contain"
                 onError={(e) => {
                   e.currentTarget.style.display =
@@ -459,11 +489,13 @@ function Reviews() {
                 className="text-gray-300"
               />
             )}
+
           </div>
 
           {/* PRODUCT INFORMATION */}
 
           <div>
+
             <p className="text-[10px] font-bold uppercase tracking-widest text-orange-500">
               Product Reviews
             </p>
@@ -477,27 +509,29 @@ function Reviews() {
               Genuine customer feedback and
               experiences.
             </p>
+
           </div>
+
         </div>
+
       </div>
 
-      {/* =================================================
-          MAIN CONTENT
-      ================================================= */}
+      {/* MAIN CONTENT */}
 
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
 
-        {/* =================================================
-            REVIEWS SECTION
-        ================================================= */}
+        {/* REVIEWS SECTION */}
 
         <div className="lg:col-span-2">
+
           <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-lg md:p-6">
 
             {/* REVIEWS HEADER */}
 
             <div className="flex items-center justify-between">
+
               <div>
+
                 <h2 className="text-lg font-bold text-gray-900">
                   Customer Reviews
                 </h2>
@@ -509,30 +543,33 @@ function Reviews() {
                     ? "review"
                     : "reviews"}
                 </p>
+
               </div>
 
               <div className="flex h-11 w-11 items-center justify-center rounded-full bg-orange-50 text-orange-500">
-                <MessageSquare
-                  size={20}
-                />
+                <MessageSquare size={20} />
               </div>
+
             </div>
 
-            {/* LOADING */}
+            {/* LOADING REVIEWS */}
 
             {loadingReviews ? (
               <div className="py-12 text-center">
+
                 <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-orange-500" />
 
                 <p className="mt-3 text-xs text-gray-500">
                   Loading reviews...
                 </p>
+
               </div>
             ) : reviews.length === 0 ? (
 
               /* NO REVIEWS */
 
               <div className="mt-6 rounded-xl border border-dashed border-gray-200 bg-gray-50 py-12 text-center">
+
                 <MessageSquare
                   size={32}
                   className="mx-auto text-gray-300"
@@ -546,13 +583,14 @@ function Reviews() {
                   Be the first customer to
                   review this product.
                 </p>
-              </div>
 
+              </div>
             ) : (
 
               /* REVIEWS LIST */
 
               <div className="mt-5 space-y-3">
+
                 {reviews.map(
                   (review, index) => (
                     <div
@@ -563,14 +601,13 @@ function Reviews() {
                       }
                       className="rounded-xl border border-gray-100 p-4 transition hover:border-orange-100 hover:shadow-sm"
                     >
+
                       <div className="flex items-start gap-3">
 
                         {/* USER ICON */}
 
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-900 text-white">
-                          <User
-                            size={16}
-                          />
+                          <User size={16} />
                         </div>
 
                         <div className="min-w-0 flex-1">
@@ -580,6 +617,7 @@ function Reviews() {
                           <div className="flex flex-col justify-between gap-2 sm:flex-row">
 
                             <div>
+
                               <p className="text-xs font-bold text-gray-900">
                                 Verified Customer
                               </p>
@@ -588,20 +626,18 @@ function Reviews() {
                                 {review?.email ||
                                   "Customer"}
                               </p>
+
                             </div>
 
                             {/* RATING */}
 
                             <div className="flex">
+
                               {[1, 2, 3, 4, 5].map(
                                 (star) => (
                                   <Star
-                                    key={
-                                      star
-                                    }
-                                    size={
-                                      13
-                                    }
+                                    key={star}
+                                    size={13}
                                     className={
                                       star <=
                                       Number(
@@ -614,7 +650,9 @@ function Reviews() {
                                   />
                                 )
                               )}
+
                             </div>
+
                           </div>
 
                           {/* COMMENT */}
@@ -627,6 +665,7 @@ function Reviews() {
                           {/* DATE */}
 
                           <p className="mt-2 text-[9px] text-gray-400">
+
                             {review?.createdAt
                               ? new Date(
                                   review.createdAt
@@ -634,33 +673,39 @@ function Reviews() {
                                   "en-PK",
                                   {
                                     year: "numeric",
-                                    month:
-                                      "short",
+                                    month: "short",
                                     day: "numeric",
                                   }
                                 )
                               : ""}
+
                           </p>
+
                         </div>
+
                       </div>
+
                     </div>
                   )
                 )}
+
               </div>
             )}
+
           </div>
+
         </div>
 
-        {/* =================================================
-            WRITE REVIEW
-        ================================================= */}
+        {/* WRITE REVIEW */}
 
         <div>
+
           <div className="sticky top-5 rounded-2xl border border-gray-100 bg-white p-5 shadow-lg md:p-6">
 
             {/* FORM HEADER */}
 
             <div>
+
               <p className="text-[10px] font-bold uppercase tracking-widest text-orange-500">
                 Your Opinion Matters
               </p>
@@ -673,6 +718,7 @@ function Reviews() {
                 Share your experience with
                 this product.
               </p>
+
             </div>
 
             {/* FORM */}
@@ -685,6 +731,7 @@ function Reviews() {
               {/* EMAIL */}
 
               <div>
+
                 <label className="mb-1.5 block text-[11px] font-bold text-gray-700">
                   Gmail Address
                 </label>
@@ -693,19 +740,19 @@ function Reviews() {
                   type="email"
                   value={email}
                   onChange={(e) =>
-                    setEmail(
-                      e.target.value
-                    )
+                    setEmail(e.target.value)
                   }
                   placeholder="example@gmail.com"
                   required
                   className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-xs outline-none transition focus:border-orange-400 focus:bg-white"
                 />
+
               </div>
 
               {/* PHONE */}
 
               <div>
+
                 <label className="mb-1.5 block text-[11px] font-bold text-gray-700">
                   Phone Number
                 </label>
@@ -730,25 +777,26 @@ function Reviews() {
                 <p className="mt-1 text-[9px] text-gray-400">
                   Example: 03001234567
                 </p>
+
               </div>
 
               {/* RATING */}
 
               <div>
+
                 <label className="mb-1.5 block text-[11px] font-bold text-gray-700">
                   Your Rating
                 </label>
 
                 <div className="flex items-center gap-1">
+
                   {[1, 2, 3, 4, 5].map(
                     (star) => (
                       <button
                         type="button"
                         key={star}
                         onClick={() =>
-                          setRating(
-                            star
-                          )
+                          setRating(star)
                         }
                         className="transition hover:scale-110"
                         aria-label={`Rate ${star} stars`}
@@ -770,12 +818,15 @@ function Reviews() {
                       {rating}/5
                     </span>
                   )}
+
                 </div>
+
               </div>
 
               {/* COMMENT */}
 
               <div>
+
                 <label className="mb-1.5 block text-[11px] font-bold text-gray-700">
                   Your Review
                 </label>
@@ -783,9 +834,7 @@ function Reviews() {
                 <textarea
                   value={comment}
                   onChange={(e) =>
-                    setComment(
-                      e.target.value
-                    )
+                    setComment(e.target.value)
                   }
                   placeholder="Tell us about your experience..."
                   rows={5}
@@ -797,6 +846,7 @@ function Reviews() {
                 <p className="mt-1 text-right text-[9px] text-gray-400">
                   {comment.length}/500
                 </p>
+
               </div>
 
               {/* ERROR */}
@@ -811,10 +861,7 @@ function Reviews() {
 
               {success && (
                 <div className="flex items-center gap-2 rounded-lg bg-green-50 px-3 py-2.5 text-[11px] font-semibold text-green-600">
-                  <CheckCircle
-                    size={15}
-                  />
-
+                  <CheckCircle size={15} />
                   Review submitted
                   successfully!
                 </div>
@@ -833,12 +880,18 @@ function Reviews() {
                   ? "Submitting..."
                   : "Submit Review"}
               </button>
+
             </form>
+
           </div>
+
         </div>
+
       </div>
+
     </div>
   );
 }
 
 export default Reviews;
+ 
