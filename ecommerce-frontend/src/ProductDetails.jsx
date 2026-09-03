@@ -1,4 +1,3 @@
- 
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -28,9 +27,11 @@ const API_URL = "https://amora-backend-lake.vercel.app";
 
 // =====================================================
 // SEO SITE URL
+// IMPORTANT:
+// Replace YOUR-DOMAIN.com with your real domain later.
 // =====================================================
 
-const SITE_URL = "https://amora-ecommerce.vercel.app";
+const SITE_URL = "https://YOUR-DOMAIN.com";
 
 // =====================================================
 // IMAGE URL HELPER
@@ -207,15 +208,21 @@ function ProductDetails() {
   const productCategory =
     product.category || "Product";
 
+  // =====================================================
+  // FIXED RATING
+  // =====================================================
+
+  const rating = Number(
+    product.rating ??
+      product.averageRating ??
+      0
+  );
+
   const productPrice =
     Number(product.price || 0);
 
   const stockNumber =
     Number(product.stock || 0);
-
-  // FIX: DEFINE PRODUCT RATING
-  const rating =
-    Number(product.rating || 0);
 
   const productImages =
     Array.isArray(product.images) &&
@@ -277,6 +284,20 @@ function ProductDetails() {
       "@type": "Brand",
       name: "AMORA",
     },
+
+    ...(rating > 0
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: rating,
+            bestRating: 5,
+            worstRating: 1,
+            reviewCount: Number(
+              product.reviews || 0
+            ),
+          },
+        }
+      : {}),
 
     offers: {
       "@type": "Offer",
@@ -483,7 +504,6 @@ function ProductDetails() {
                             : "border-gray-200 hover:border-orange-300"
                         }`}
                       >
-
                         <img
                           src={getImageUrl(image)}
                           alt={`${productName} image ${
@@ -491,7 +511,6 @@ function ProductDetails() {
                           }`}
                           className="h-12 w-12 object-contain"
                         />
-
                       </button>
                     )
                   )}
@@ -885,4 +904,3 @@ function ProductDetails() {
 }
 
 export default ProductDetails;
- 
