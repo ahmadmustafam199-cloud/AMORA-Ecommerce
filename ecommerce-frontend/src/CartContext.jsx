@@ -8,18 +8,47 @@ export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState(() => {
     const savedCart = localStorage.getItem("cart");
 
-    return savedCart ? JSON.parse(savedCart) : [];
+    if (!savedCart) {
+      return [];
+    }
+
+    try {
+      const parsedCart = JSON.parse(savedCart);
+
+      // Old cart data ko bhi normalize karega
+      return parsedCart.map((item) => ({
+        ...item,
+
+        // Agar image available hai to use karega
+        // warna images array ki first image lega
+        image:
+          item.image ||
+          (Array.isArray(item.images) && item.images.length > 0
+            ? item.images[0]
+            : ""),
+
+        quantity: item.quantity || 1,
+      }));
+    } catch (error) {
+      console.error("Cart Load Error:", error);
+      return [];
+    }
   });
- 
+
+  // Clear Cart
   const clearCart = () => {
-  setCart([]);
-};
+    setCart([]);
+  };
+
   // Cart change hone par localStorage mein save karega
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(cart));
   }, [cart]);
 
-  // Add Product
+  // =====================================================
+  // ADD PRODUCT
+  // =====================================================
+
   const addToCart = (product) => {
     setCart((previousCart) => {
       const existingProduct = previousCart.find(
@@ -32,22 +61,44 @@ export const CartProvider = ({ children }) => {
             ? {
                 ...item,
                 quantity: item.quantity + 1,
+
+                // Image ko preserve karega
+                image:
+                  item.image ||
+                  product.image ||
+                  (Array.isArray(product.images)
+                    ? product.images[0]
+                    : ""),
               }
             : item
         );
       }
 
+      // Product ki image normalize karega
+      const productImage =
+        product.image ||
+        (Array.isArray(product.images) && product.images.length > 0
+          ? product.images[0]
+          : "");
+
       return [
         ...previousCart,
         {
           ...product,
+
+          // Cart mein singular image bhi save hogi
+          image: productImage,
+
           quantity: 1,
         },
       ];
     });
   };
 
-  // Increase Quantity
+  // =====================================================
+  // INCREASE QUANTITY
+  // =====================================================
+
   const increaseQuantity = (productName) => {
     setCart((previousCart) =>
       previousCart.map((item) =>
@@ -61,7 +112,10 @@ export const CartProvider = ({ children }) => {
     );
   };
 
-  // Decrease Quantity
+  // =====================================================
+  // DECREASE QUANTITY
+  // =====================================================
+
   const decreaseQuantity = (productName) => {
     setCart((previousCart) =>
       previousCart
@@ -77,38 +131,46 @@ export const CartProvider = ({ children }) => {
     );
   };
 
-  // Remove Product
+  // =====================================================
+  // REMOVE PRODUCT
+  // =====================================================
+
   const removeFromCart = (productName) => {
     setCart((previousCart) =>
       previousCart.filter((item) => item.name !== productName)
     );
   };
 
-  // Total Price
+  // =====================================================
+  // TOTAL PRICE
+  // =====================================================
+
   const totalPrice = cart.reduce((total, item) => {
     const price =
       typeof item.price === "string"
         ? Number(
-            item.price.replace("PKR", "").replace(/,/g, "").trim()
+            item.price
+              .replace("PKR", "")
+              .replace(/,/g, "")
+              .trim()
           )
         : Number(item.price);
 
     return total + price * item.quantity;
   }, 0);
-  
 
   return (
     <CartContext.Provider
-  value={{
-    cart,
-    addToCart,
-    increaseQuantity,
-    decreaseQuantity,
-    removeFromCart,
-    totalPrice,
-    clearCart,
-  }}
->
+      value={{
+        cart,
+        addToCart,
+        increaseQuantity,
+        decreaseQuantity,
+        removeFromCart,
+        totalPrice,
+        clearCart,
+      }}
+    >
       {children}
     </CartContext.Provider>
   );

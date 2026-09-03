@@ -33,6 +33,29 @@ function Checkout() {
   const deliveryCharges = 500;
   const finalTotal = totalPrice + deliveryCharges;
 
+  // =====================================================
+  // IMAGE URL HELPER
+  // =====================================================
+
+  const getImageUrl = (item) => {
+    if (!item) return "";
+
+    // Cart mein image already available
+    if (item.image) {
+      return item.image;
+    }
+
+    // Backend se images array aa rahi ho
+    if (
+      Array.isArray(item.images) &&
+      item.images.length > 0
+    ) {
+      return item.images[0];
+    }
+
+    return "";
+  };
+
   // ==========================================
   // INPUT CHANGE
   // ==========================================
@@ -76,29 +99,34 @@ function Checkout() {
           name: item.name,
           price,
           quantity: item.quantity,
-          image: item.image || "",
+
+          // Correct image URL
+          image: getImageUrl(item),
         };
       });
 
-      const response = await fetch(`${API_URL}/api/orders`, {
-        method: "POST",
+      const response = await fetch(
+        `${API_URL}/api/orders`,
+        {
+          method: "POST",
 
-        headers: {
-          "Content-Type": "application/json",
-        },
+          headers: {
+            "Content-Type": "application/json",
+          },
 
-        body: JSON.stringify({
-          customerName: formData.customerName,
-          customerEmail: formData.customerEmail,
-          address: formData.address,
-          city: formData.city,
-          phone: formData.phone,
-          paymentMethod: formData.paymentMethod,
-          products,
-          deliveryCharges,
-          totalPrice: finalTotal,
-        }),
-      });
+          body: JSON.stringify({
+            customerName: formData.customerName,
+            customerEmail: formData.customerEmail,
+            address: formData.address,
+            city: formData.city,
+            phone: formData.phone,
+            paymentMethod: formData.paymentMethod,
+            products,
+            deliveryCharges,
+            totalPrice: finalTotal,
+          }),
+        }
+      );
 
       const data = await response.json();
 
@@ -114,7 +142,10 @@ function Checkout() {
       // Go to success page
       navigate("/order-success");
     } catch (error) {
-      console.error("Place Order Error:", error);
+      console.error(
+        "Place Order Error:",
+        error
+      );
 
       alert(
         error.message ||
@@ -132,7 +163,9 @@ function Checkout() {
   if (cart.length === 0) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
+
         <div className="w-full max-w-md rounded-2xl bg-white p-8 text-center shadow-xl">
+
           <ShoppingBag
             size={55}
             className="mx-auto text-gray-300"
@@ -164,13 +197,16 @@ function Checkout() {
           >
             Continue Shopping
           </button>
+
         </div>
+
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gray-100 px-4 py-10">
+
       <div className="mx-auto max-w-6xl">
 
         {/* Back */}
@@ -202,6 +238,7 @@ function Checkout() {
           <div className="lg:col-span-2 rounded-2xl bg-white p-6 shadow-lg">
 
             <div className="mb-6">
+
               <h1 className="text-2xl font-bold text-gray-900">
                 Checkout
               </h1>
@@ -209,6 +246,7 @@ function Checkout() {
               <p className="mt-1 text-sm text-gray-500">
                 Enter your delivery information
               </p>
+
             </div>
 
             <form
@@ -218,11 +256,13 @@ function Checkout() {
 
               {/* Name */}
               <div>
+
                 <label className="mb-2 block text-sm font-semibold text-gray-700">
                   Full Name
                 </label>
 
                 <div className="relative">
+
                   <User
                     size={18}
                     className="
@@ -257,16 +297,20 @@ function Checkout() {
                       focus:bg-white
                     "
                   />
+
                 </div>
+
               </div>
 
               {/* Email */}
               <div>
+
                 <label className="mb-2 block text-sm font-semibold text-gray-700">
                   Email
                 </label>
 
                 <div className="relative">
+
                   <Mail
                     size={18}
                     className="
@@ -301,16 +345,20 @@ function Checkout() {
                       focus:bg-white
                     "
                   />
+
                 </div>
+
               </div>
 
               {/* Phone */}
               <div>
+
                 <label className="mb-2 block text-sm font-semibold text-gray-700">
                   Phone Number
                 </label>
 
                 <div className="relative">
+
                   <Phone
                     size={18}
                     className="
@@ -345,16 +393,20 @@ function Checkout() {
                       focus:bg-white
                     "
                   />
+
                 </div>
+
               </div>
 
               {/* Address */}
               <div>
+
                 <label className="mb-2 block text-sm font-semibold text-gray-700">
                   Delivery Address
                 </label>
 
                 <div className="relative">
+
                   <MapPin
                     size={18}
                     className="
@@ -389,16 +441,20 @@ function Checkout() {
                       focus:bg-white
                     "
                   />
+
                 </div>
+
               </div>
 
               {/* City */}
               <div>
+
                 <label className="mb-2 block text-sm font-semibold text-gray-700">
                   City
                 </label>
 
                 <div className="relative">
+
                   <MapPin
                     size={18}
                     className="
@@ -433,11 +489,14 @@ function Checkout() {
                       focus:bg-white
                     "
                   />
+
                 </div>
+
               </div>
 
               {/* Payment Method */}
               <div className="relative">
+
                 <label className="mb-2 block text-sm font-semibold text-gray-700">
                   Payment Method
                 </label>
@@ -473,6 +532,7 @@ function Checkout() {
                     focus:bg-white
                   "
                 >
+
                   <option value="">
                     Select Payment Method
                   </option>
@@ -480,7 +540,9 @@ function Checkout() {
                   <option value="Cash on Delivery">
                     Cash on Delivery
                   </option>
+
                 </select>
+
               </div>
 
               {/* Submit */}
@@ -508,6 +570,7 @@ function Checkout() {
                   cursor-pointer
                 "
               >
+
                 {loading ? (
                   "Placing Order..."
                 ) : (
@@ -516,9 +579,11 @@ function Checkout() {
                     Place Order
                   </>
                 )}
+
               </button>
 
             </form>
+
           </div>
 
           {/* =====================================
@@ -533,56 +598,69 @@ function Checkout() {
 
             {/* Products */}
             <div className="mt-5 space-y-4">
+
               {cart.map((item) => (
                 <div
                   key={item.name}
                   className="flex items-center gap-3"
                 >
+
                   <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-gray-100">
+
                     <img
-                      src={item.image}
+                      src={getImageUrl(item)}
                       alt={item.name}
                       className="h-full w-full object-contain"
                     />
 
-                    <span className="
-                      absolute
-                      right-0
-                      top-0
-                      rounded-bl-md
-                      bg-orange-500
-                      px-1.5
-                      py-0.5
-                      text-[10px]
-                      font-bold
-                      text-white
-                    ">
+                    <span
+                      className="
+                        absolute
+                        right-0
+                        top-0
+                        rounded-bl-md
+                        bg-orange-500
+                        px-1.5
+                        py-0.5
+                        text-[10px]
+                        font-bold
+                        text-white
+                      "
+                    >
                       {item.quantity}
                     </span>
+
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <h3 className="
-                      truncate
-                      text-sm
-                      font-bold
-                      text-gray-800
-                    ">
+
+                    <h3
+                      className="
+                        truncate
+                        text-sm
+                        font-bold
+                        text-gray-800
+                      "
+                    >
                       {item.name}
                     </h3>
 
                     <p className="text-xs text-gray-500">
                       {item.price}
                     </p>
+
                   </div>
+
                 </div>
               ))}
+
             </div>
 
             {/* Price */}
             <div className="mt-6 space-y-3 border-t pt-5">
 
               <div className="flex justify-between">
+
                 <span className="text-sm text-gray-600">
                   Subtotal
                 </span>
@@ -590,9 +668,11 @@ function Checkout() {
                 <span className="text-sm font-semibold">
                   PKR {totalPrice.toLocaleString()}
                 </span>
+
               </div>
 
               <div className="flex justify-between">
+
                 <span className="text-sm text-gray-600">
                   Delivery
                 </span>
@@ -600,9 +680,11 @@ function Checkout() {
                 <span className="text-sm font-semibold">
                   PKR 500
                 </span>
+
               </div>
 
               <div className="flex justify-between border-t pt-4">
+
                 <span className="text-lg font-bold">
                   Total
                 </span>
@@ -610,9 +692,11 @@ function Checkout() {
                 <span className="text-lg font-bold text-orange-500">
                   PKR {finalTotal.toLocaleString()}
                 </span>
+
               </div>
 
             </div>
+
           </div>
 
         </div>
