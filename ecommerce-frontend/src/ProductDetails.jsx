@@ -1,3 +1,4 @@
+ 
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -27,11 +28,9 @@ const API_URL = "https://amora-backend-lake.vercel.app";
 
 // =====================================================
 // SEO SITE URL
-// IMPORTANT:
-// Replace YOUR-DOMAIN.com with your real domain later.
 // =====================================================
 
-const SITE_URL = "https://YOUR-DOMAIN.com";
+const SITE_URL = "https://amora-ecommerce.vercel.app";
 
 // =====================================================
 // IMAGE URL HELPER
@@ -211,15 +210,12 @@ function ProductDetails() {
   const productPrice =
     Number(product.price || 0);
 
-  // =====================================================
-  // FIXED RATING
-  // =====================================================
-
-  const rating =
-    Number(product.rating || 0);
-
   const stockNumber =
     Number(product.stock || 0);
+
+  // FIX: DEFINE PRODUCT RATING
+  const rating =
+    Number(product.rating || 0);
 
   const productImages =
     Array.isArray(product.images) &&
@@ -889,3 +885,4 @@ function ProductDetails() {
 }
 
 export default ProductDetails;
+ 
