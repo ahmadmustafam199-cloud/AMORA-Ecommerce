@@ -28,7 +28,7 @@ const API_URL = "https://amora-backend-lake.vercel.app";
 // =====================================================
 // SEO SITE URL
 // IMPORTANT:
-// Deployment ke baad YOUR-DOMAIN.com ko real domain se replace karna.
+// Replace YOUR-DOMAIN.com with your real domain later.
 // =====================================================
 
 const SITE_URL = "https://YOUR-DOMAIN.com";
@@ -211,25 +211,15 @@ function ProductDetails() {
   const productPrice =
     Number(product.price || 0);
 
+  // =====================================================
+  // FIXED RATING
+  // =====================================================
+
+  const rating =
+    Number(product.rating || 0);
+
   const stockNumber =
     Number(product.stock || 0);
-
-  // =====================================================
-  // RATING
-  // FIXED: rating was missing
-  // =====================================================
-
-  const rating = Math.min(
-    5,
-    Math.max(
-      0,
-      Number(product.rating || 5)
-    )
-  );
-
-  // =====================================================
-  // PRODUCT IMAGES
-  // =====================================================
 
   const productImages =
     Array.isArray(product.images) &&
@@ -357,10 +347,6 @@ function ProductDetails() {
     );
   };
 
-  // =====================================================
-  // RETURN
-  // =====================================================
-
   return (
     <>
       {/* =================================================
@@ -386,7 +372,6 @@ function ProductDetails() {
       />
 
       <div className="w-full bg-gray-50">
-
         <div className="px-4 py-6 md:px-7 lg:px-10">
 
           {/* =================================================
@@ -463,13 +448,13 @@ function ProductDetails() {
                       src={getImageUrl(currentImage)}
                       alt={`${productName} - AMORA`}
                       className="
-                        h-64 w-64
-                        object-contain
-                        transition-all
-                        duration-700
-                        ease-out
-                        group-hover:scale-125
-                        group-hover:rotate-1
+                      h-64 w-64
+                      object-contain
+                      transition-all
+                      duration-700
+                      ease-out
+                      group-hover:scale-125
+                      group-hover:rotate-1
                       "
                       onError={(e) => {
                         e.currentTarget.style.display =
@@ -502,6 +487,7 @@ function ProductDetails() {
                             : "border-gray-200 hover:border-orange-300"
                         }`}
                       >
+
                         <img
                           src={getImageUrl(image)}
                           alt={`${productName} image ${
@@ -509,6 +495,7 @@ function ProductDetails() {
                           }`}
                           className="h-12 w-12 object-contain"
                         />
+
                       </button>
                     )
                   )}
@@ -590,6 +577,7 @@ function ProductDetails() {
                     <MessageSquare size={13} />
 
                     {product.reviews || 0} Reviews
+
                   </button>
 
                 </div>
@@ -602,7 +590,9 @@ function ProductDetails() {
 
                   <span className="text-[20px] font-bold text-gray-900">
                     PKR{" "}
-                    {productPrice.toLocaleString()}
+                    {Number(
+                      product.price || 0
+                    ).toLocaleString()}
                   </span>
 
                   {product.oldPrice && (
@@ -893,7 +883,6 @@ function ProductDetails() {
           </div>
 
         </div>
-
       </div>
     </>
   );
