@@ -53,8 +53,8 @@ const CATEGORIES = [
 
 function Categories({ onCategoryClick, selectedCategory }) {
   return (
-    <div className="w-full px-3 pt-2">
-      <div className="grid grid-cols-10 gap-2">
+    <div className="w-full px-0 pt-2 sm:px-1">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-10">
         {CATEGORIES.map((category, index) => {
           const isSelected = selectedCategory === category.name;
 
@@ -66,6 +66,7 @@ function Categories({ onCategoryClick, selectedCategory }) {
                 group
                 h-24
                 w-full
+                min-w-0
                 rounded-xl
                 border
                 bg-white

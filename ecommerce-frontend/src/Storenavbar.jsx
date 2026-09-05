@@ -9,11 +9,12 @@ import {
   ChevronDown,
   CircleHelp,
   PackageCheck,
+  X, // Mobile menu close icon ke liye
 } from "lucide-react";
 
 import { Link } from "react-router-dom";
 import { useCart } from "./useCart";
- 
+
 function StoreNavbar({
   search = "",
   setSearch = () => {},
@@ -24,6 +25,7 @@ function StoreNavbar({
   const { cart } = useCart();
 
   const [showCategories, setShowCategories] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false); // Mobile Menu state
 
   // Total products quantity in cart
   const cartCount = cart.reduce(
@@ -49,26 +51,20 @@ function StoreNavbar({
   return (
     <header className="w-full bg-white">
 
-      {/* ================================================= */}
-      {/* TOP BAR - HAR PAGE PAR SHOW HOGA */}
-      {/* ================================================= */}
-
+      {/* ================= TOP BAR ================= */}
       <div className="bg-[#071a3a] text-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2.5">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-3 py-2.5 sm:px-4">
 
           {/* Free Delivery */}
-          <div className="flex items-center gap-2 pl-8 text-sm">
+          <div className="flex min-w-0 items-center gap-2 text-xs sm:pl-2 sm:text-sm">
             <PackageCheck size={17} />
-
-            <span>
+            <span className="truncate">
               Free Delivery on orders over PKR 5000
             </span>
           </div>
 
           {/* Right Links */}
           <div className="hidden items-center gap-7 pr-8 md:flex">
-
-            {/* Help & Support */}
             <a
               href="#"
               className="flex items-center gap-2 text-sm transition hover:text-orange-400"
@@ -77,7 +73,6 @@ function StoreNavbar({
               Help & Support
             </a>
 
-            {/* Track Order */}
             <a
               href="#"
               className="flex items-center gap-2 text-sm transition hover:text-orange-400"
@@ -86,7 +81,6 @@ function StoreNavbar({
               Track Order
             </a>
 
-            {/* Currency */}
             <button
               type="button"
               className="flex items-center gap-1 text-sm"
@@ -94,53 +88,36 @@ function StoreNavbar({
               PKR
               <ChevronDown size={14} />
             </button>
-
           </div>
         </div>
       </div>
 
-      {/* ================================================= */}
-      {/* MAIN NAVBAR - SIRF STORE PAGES PAR */}
-      {/* ================================================= */}
-
+      {/* ================= MAIN NAVBAR ================= */}
       {showMainNavbar && (
         <>
-          {/* ================= MAIN NAVBAR ================= */}
-
           <div className="border-b border-slate-200 bg-white">
-
-            <div className="mx-auto flex max-w-7xl items-center gap-6 px-4 py-5">
+            <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-3 py-4 sm:gap-6 sm:px-4 sm:py-5">
 
               {/* LOGO */}
-              <div className="flex shrink-0 items-center pl-5.5">
-
+              <Link to="/" className="flex shrink-0 items-center gap-2 sm:pl-2 lg:pl-5">
                 <img
-                  className="h-11 w-11 object-contain"
+                  className="h-9 w-9 object-contain sm:h-11 sm:w-11"
                   src="/Image/E-3.jfif"
                   alt="AMORA"
                 />
-
-                <span className="text-[20px] font-extrabold tracking-tight">
-                  <span className="text-[#071a3a]">
-                    AMORA
-                  </span>
+                <span className="text-lg font-extrabold tracking-tight sm:text-[20px] text-[#071a3a]">
+                  AMORA
                 </span>
+              </Link>
 
-              </div>
-
-              {/* ================= SEARCH BAR ================= */}
-
+              {/* ================= DESKTOP SEARCH BAR ================= */}
               <div className="hidden flex-1 md:block">
-
                 <div className="mx-auto flex overflow-hidden rounded-xl border border-slate-300 bg-white shadow-sm transition focus-within:border-orange-500 focus-within:ring-2 focus-within:ring-orange-100">
-
                   <input
                     type="text"
                     value={search}
                     onChange={(e) => {
                       setSearch(e.target.value);
-
-                      // User search kare to selected category remove
                       if (selectedCategory) {
                         setSelectedCategory("");
                       }
@@ -148,23 +125,17 @@ function StoreNavbar({
                     placeholder="Search for products..."
                     className="w-full px-5 py-3 text-sm text-slate-700 outline-none placeholder:text-slate-400"
                   />
-
                   <button
                     type="button"
                     className="flex w-14 shrink-0 items-center justify-center bg-orange-500 text-white transition hover:bg-orange-600"
                   >
                     <Search size={21} />
                   </button>
-
                 </div>
-
               </div>
 
-              {/* ================= ACCOUNT / WISHLIST / CART ================= */}
-
+              {/* ================= DESKTOP ACCOUNT / WISHLIST / CART ================= */}
               <div className="hidden items-center gap-5 pr-10 lg:flex">
-
-                {/* Account */}
                 <button
                   type="button"
                   className="flex items-center gap-2 text-left"
@@ -174,24 +145,20 @@ function StoreNavbar({
                     strokeWidth={1.8}
                     className="text-slate-800"
                   />
-
                   <div>
                     <p className="text-[13px] font-semibold text-slate-800">
                       My Account
                     </p>
-
                     <p className="text-[11px] text-slate-500">
                       Login / Register
                     </p>
                   </div>
-
                   <ChevronDown
                     size={13}
                     className="text-slate-500"
                   />
                 </button>
 
-                {/* Wishlist */}
                 <button
                   type="button"
                   className="flex items-center gap-2 text-[14px] font-semibold text-slate-800 transition hover:text-orange-500"
@@ -200,13 +167,9 @@ function StoreNavbar({
                     size={20}
                     strokeWidth={1.8}
                   />
-
-                  <span>
-                    Wishlist
-                  </span>
+                  <span>Wishlist</span>
                 </button>
 
-                {/* Cart */}
                 <Link
                   to="/cart"
                   className="relative flex items-center gap-2 text-sm font-semibold text-slate-800 transition hover:text-orange-500"
@@ -215,32 +178,44 @@ function StoreNavbar({
                     size={22}
                     strokeWidth={1.8}
                   />
-
-                  <span>
-                    Cart
-                  </span>
-
-                  {/* Cart Count */}
+                  <span>Cart</span>
                   <span className="absolute -right-3 -top-3 flex h-5 min-w-5 items-center justify-center rounded-full bg-orange-500 px-1 text-[11px] font-bold text-white">
                     {cartCount}
                   </span>
                 </Link>
-
               </div>
+
+              {/* ================= MOBILE ACTIONS & HAMBURGER ================= */}
+              <div className="flex items-center gap-3 lg:hidden">
+                <Link
+                  to="/cart"
+                  className="relative flex items-center p-2 text-slate-800"
+                >
+                  <ShoppingCart size={22} />
+                  <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-orange-500 px-1 text-[10px] font-bold text-white">
+                    {cartCount}
+                  </span>
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  className="rounded-lg p-2 text-slate-800 hover:bg-slate-100"
+                >
+                  {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                </button>
+              </div>
+
             </div>
 
             {/* ================= MOBILE SEARCH ================= */}
-
             <div className="px-4 pb-4 md:hidden">
-
               <div className="flex overflow-hidden rounded-xl border border-slate-300">
-
                 <input
                   type="text"
                   value={search}
                   onChange={(e) => {
                     setSearch(e.target.value);
-
                     if (selectedCategory) {
                       setSelectedCategory("");
                     }
@@ -248,65 +223,81 @@ function StoreNavbar({
                   placeholder="Search for products..."
                   className="w-full px-4 py-3 text-sm outline-none"
                 />
-
                 <button
                   type="button"
                   className="bg-orange-500 px-4 text-white"
                 >
                   <Search size={18} />
                 </button>
-
               </div>
-
             </div>
+
+            {/* ================= MOBILE MENU DRAWER ================= */}
+            {mobileMenuOpen && (
+              <div className="border-t border-slate-200 bg-slate-50 px-4 py-4 md:hidden">
+                <nav className="flex flex-col gap-3 font-semibold text-slate-800">
+                  <Link
+                    to="/"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="py-1 transition hover:text-orange-500"
+                  >
+                    Home
+                  </Link>
+                  <Link
+                    to="/about"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="py-1 transition hover:text-orange-500"
+                  >
+                    About
+                  </Link>
+                  <Link
+                    to="/deals"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="py-1 transition hover:text-orange-500"
+                  >
+                    Deals
+                  </Link>
+                  <Link
+                    to="/contact"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="py-1 transition hover:text-orange-500"
+                  >
+                    Contact
+                  </Link>
+                </nav>
+              </div>
+            )}
 
           </div>
 
-          {/* ================= NAVIGATION ================= */}
+          {/* ================= NAVIGATION BAR (DESKTOP CATEGORIES & LINKS) ================= */}
+          <div className="hidden border-b border-slate-200 bg-white md:block">
+            <div className="mx-auto flex max-w-7xl items-center px-3 sm:px-4 lg:pl-12">
 
-          <div className="border-b border-slate-200 bg-white">
-
-            <div className="mx-auto flex max-w-7xl items-center pl-12 px-4">
-
-              {/* ================= ALL CATEGORIES ================= */}
-
+              {/* ALL CATEGORIES DROPDOWN */}
               <div className="relative">
-
                 <button
                   type="button"
-                  onClick={() =>
-                    setShowCategories(!showCategories)
-                  }
+                  onClick={() => setShowCategories(!showCategories)}
                   className="flex cursor-pointer items-center gap-2 rounded-b-lg bg-[#071a3a] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#0b2855]"
                 >
                   <Menu size={16} />
-
-                  <span className="text-[12px]">
-                    All Categories
-                  </span>
-
+                  <span className="text-[12px]">All Categories</span>
                   <ChevronDown
                     size={14}
                     className={`transition-transform duration-200 ${
-                      showCategories
-                        ? "rotate-180"
-                        : ""
+                      showCategories ? "rotate-180" : ""
                     }`}
                   />
                 </button>
 
-                {/* ================= CATEGORY DROPDOWN ================= */}
-
                 {showCategories && (
                   <div className="absolute left-0 top-full z-50 mt-1 w-50 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl">
-
                     <div className="border-b border-slate-100 bg-slate-50 px-4 py-1">
                       <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
                         Shop By Category
                       </p>
                     </div>
-
-                    {/* ================= ALL PRODUCTS ================= */}
 
                     <button
                       type="button"
@@ -324,22 +315,13 @@ function StoreNavbar({
                       All Products
                     </button>
 
-                    {/* ================= CATEGORIES ================= */}
-
                     {categories.map((category) => (
                       <button
                         key={category}
                         type="button"
                         onClick={() => {
-                          // IMPORTANT:
-                          // Category ko search mein nahi daalna
-                          // Separate category filter use hoga
                           setSelectedCategory(category);
-
-                          // Search clear
                           setSearch("");
-
-                          // Dropdown close
                           setShowCategories(false);
                         }}
                         className={`w-full px-4 py-1 text-left text-sm transition hover:bg-orange-50 hover:pl-6 hover:text-orange-500 ${
@@ -351,47 +333,37 @@ function StoreNavbar({
                         {category}
                       </button>
                     ))}
-
                   </div>
                 )}
-
               </div>
 
-              {/* ================= NAV LINKS ================= */}
-
-            {/* ================= NAV LINKS ================= */}
-
-<nav className="hidden items-center gap-7 px-9 md:flex">
-
-  {/* HOME */}
-  <Link
-    to="/"
-    className="font-bold text-[14px] text-orange-500 transition hover:text-orange-500"
-  >
-    Home
-  </Link>
-
-  {/* ABOUT */}
-  <Link
-    to="/about"
-    className="font-bold text-[14px] text-slate-800 transition hover:text-orange-500"
-  >
-    About
-  </Link>
-
-  {/* DEALS */}
-  <Link
-  to="/deals"
- className="font-bold text-[14px] text-slate-800 transition hover:text-orange-500"
->
-  Deals
-</Link>
-  {/* CONTACT */}
-  <Link className="font-bold text-[14px] text-slate-800 transition hover:text-orange-500" to="/contact">
-  Contact
-  </Link>
-
-</nav>
+              {/* DESKTOP NAV LINKS */}
+              <nav className="flex items-center gap-7 px-9">
+                <Link
+                  to="/"
+                  className="font-bold text-[14px] text-orange-500 transition hover:text-orange-500"
+                >
+                  Home
+                </Link>
+                <Link
+                  to="/about"
+                  className="font-bold text-[14px] text-slate-800 transition hover:text-orange-500"
+                >
+                  About
+                </Link>
+                <Link
+                  to="/deals"
+                  className="font-bold text-[14px] text-slate-800 transition hover:text-orange-500"
+                >
+                  Deals
+                </Link>
+                <Link
+                  to="/contact"
+                  className="font-bold text-[14px] text-slate-800 transition hover:text-orange-500"
+                >
+                  Contact
+                </Link>
+              </nav>
 
             </div>
           </div>

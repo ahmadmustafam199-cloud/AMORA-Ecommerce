@@ -56,7 +56,7 @@ function Home({
         {/* ==========================================
             CATEGORIES
         ========================================== */}
-        <section className="p-4 pl-8">
+        <section className="px-3 py-4 sm:px-5 lg:px-8">
           <CategorySection
             onCategoryClick={handleCategoryClick}
             selectedCategory={selectedCategory}
@@ -66,11 +66,11 @@ function Home({
         {/* ==========================================
             FEATURED PRODUCTS HEADER
         ========================================== */}
-        <section className="flex items-center justify-between pl-12 pr-8">
+        <section className="flex flex-col items-start justify-between gap-3 px-4 sm:flex-row sm:items-center sm:px-6 lg:px-12 lg:pr-8">
 
           <div>
 
-            <h2 className="text-2xl font-bold text-gray-900">
+            <h2 className="text-xl font-bold text-gray-900 sm:text-2xl">
               Featured Products
             </h2>
 
