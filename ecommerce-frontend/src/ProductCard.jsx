@@ -9,6 +9,7 @@ import {
   Eye,
   Heart,
   Star,
+  MoreVertical,
 } from "lucide-react";
 
 import { useCart } from "./useCart";
@@ -24,7 +25,6 @@ const API_URL = "https://amora-backend-lake.vercel.app";
 // =====================================================
 
 const getImageUrl = (image) => {
-  // Prevent null / undefined / non-string errors
   if (!image || typeof image !== "string") {
     return "";
   }
@@ -54,9 +54,7 @@ const getImageUrl = (image) => {
 // =====================================================
 
 const fetchProductsFromAPI = async () => {
-  const response = await fetch(
-    `${API_URL}/api/products`
-  );
+  const response = await fetch(`${API_URL}/api/products`);
 
   const data = await response.json();
 
@@ -70,11 +68,7 @@ const fetchProductsFromAPI = async () => {
     return data;
   }
 
-  return (
-    data.products ||
-    data.data ||
-    []
-  );
+  return data.products || data.data || [];
 };
 
 // =====================================================
@@ -94,24 +88,16 @@ function ProductCard({
   // =====================================================
 
   const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [apiError, setApiError] = useState("");
+  const [notifications, setNotifications] = useState([]);
+  const [clickedProduct, setClickedProduct] = useState("");
+  const [wishlist, setWishlist] = useState([]);
 
-  const [loading, setLoading] =
-    useState(true);
+  // MOBILE 3-DOT MENU
+  const [openMenu, setOpenMenu] = useState(null);
 
-  const [apiError, setApiError] =
-    useState("");
-
-  const [notifications, setNotifications] =
-    useState([]);
-
-  const [clickedProduct, setClickedProduct] =
-    useState("");
-
-  const [wishlist, setWishlist] =
-    useState([]);
-
-  const notificationId =
-    useRef(0);
+  const notificationId = useRef(0);
 
   // =====================================================
   // FETCH PRODUCTS
@@ -189,20 +175,19 @@ function ProductCard({
       return;
     }
 
-    const timers =
-      notifications.map(
-        (notification) =>
-          setTimeout(() => {
-            setNotifications(
-              (previous) =>
-                previous.filter(
-                  (item) =>
-                    item.id !==
-                    notification.id
-                )
-            );
-          }, 4000)
-      );
+    const timers = notifications.map(
+      (notification) =>
+        setTimeout(() => {
+          setNotifications(
+            (previous) =>
+              previous.filter(
+                (item) =>
+                  item.id !==
+                  notification.id
+              )
+          );
+        }, 4000)
+    );
 
     return () => {
       timers.forEach(clearTimeout);
@@ -214,8 +199,6 @@ function ProductCard({
   // =====================================================
 
   const handleAddToCart = (product) => {
-    // IMPORTANT:
-    // Always use MongoDB _id for product identification
     const productId = product._id;
 
     const existingProduct =
@@ -253,9 +236,7 @@ function ProductCard({
 
     // Button animation
 
-    setClickedProduct(
-      productId
-    );
+    setClickedProduct(productId);
 
     setTimeout(() => {
       setClickedProduct("");
@@ -267,9 +248,7 @@ function ProductCard({
 
     const notification = {
       ...cartProduct,
-
       quantity: newQuantity,
-
       id: notificationId.current,
     };
 
@@ -300,9 +279,7 @@ function ProductCard({
   // WISHLIST
   // =====================================================
 
-  const toggleWishlist = (
-    productId
-  ) => {
+  const toggleWishlist = (productId) => {
     setWishlist(
       (previous) =>
         previous.includes(productId)
@@ -321,9 +298,7 @@ function ProductCard({
   // SEARCH
   // =====================================================
 
-  const searchText = String(
-    search || ""
-  )
+  const searchText = String(search || "")
     .toLowerCase()
     .trim();
 
@@ -342,37 +317,29 @@ function ProductCard({
   // =====================================================
 
   const filteredProducts =
-    products.filter(
-      (product) => {
-        const name = String(
-          product.name || ""
-        ).toLowerCase();
+    products.filter((product) => {
+      const name = String(
+        product.name || ""
+      ).toLowerCase();
 
-        const category =
-          String(
-            product.category || ""
-          ).toLowerCase();
+      const category = String(
+        product.category || ""
+      ).toLowerCase();
 
-        const matchesSearch =
-          !searchText ||
-          name.includes(
-            searchText
-          ) ||
-          category.includes(
-            searchText
-          );
+      const matchesSearch =
+        !searchText ||
+        name.includes(searchText) ||
+        category.includes(searchText);
 
-        const matchesCategory =
-          !categoryText ||
-          category ===
-            categoryText;
+      const matchesCategory =
+        !categoryText ||
+        category === categoryText;
 
-        return (
-          matchesSearch &&
-          matchesCategory
-        );
-      }
-    );
+      return (
+        matchesSearch &&
+        matchesCategory
+      );
+    });
 
   // =====================================================
   // LOADING
@@ -381,13 +348,11 @@ function ProductCard({
   if (loading) {
     return (
       <section className="py-16 text-center">
-
         <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-orange-500" />
 
         <p className="mt-4 text-sm font-semibold text-gray-500">
           Loading products...
         </p>
-
       </section>
     );
   }
@@ -399,9 +364,7 @@ function ProductCard({
   if (apiError) {
     return (
       <section className="px-4 py-16 text-center">
-
         <div className="mx-auto max-w-md rounded-2xl border border-red-100 bg-red-50 p-6">
-
           <ShoppingCart
             size={35}
             className="mx-auto text-red-400"
@@ -421,9 +384,7 @@ function ProductCard({
           >
             Try Again
           </button>
-
         </div>
-
       </section>
     );
   }
@@ -447,7 +408,6 @@ function ProductCard({
               key={notification.id}
               className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl animate-[slideIn_0.45s_ease-out]"
             >
-
               <div className="p-4">
 
                 {/* NOTIFICATION HEADER */}
@@ -466,7 +426,6 @@ function ProductCard({
                       />
 
                     </div>
-
                   </div>
 
                   <div className="flex-1">
@@ -489,9 +448,7 @@ function ProductCard({
                     }
                     className="flex h-7 w-7 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-100 hover:text-gray-700"
                   >
-
                     <X size={15} />
-
                   </button>
 
                 </div>
@@ -555,15 +512,11 @@ function ProductCard({
                   <div className="min-w-0 flex-1">
 
                     <h4 className="truncate text-sm font-bold text-gray-900">
-                      {
-                        notification.name
-                      }
+                      {notification.name}
                     </h4>
 
                     <p className="mt-1 text-xs text-gray-500">
-                      {
-                        notification.category
-                      }
+                      {notification.category}
                     </p>
 
                     <div className="mt-1 flex items-center gap-2">
@@ -578,15 +531,11 @@ function ProductCard({
 
                       <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-700">
                         Qty{" "}
-                        {
-                          notification.quantity
-                        }
+                        {notification.quantity}
                       </span>
 
                     </div>
-
                   </div>
-
                 </div>
 
                 {/* NOTIFICATION BUTTONS */}
@@ -615,15 +564,11 @@ function ProductCard({
                     className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gray-900 px-3 py-2.5 text-xs font-bold text-white transition hover:bg-orange-500"
                   >
 
-                    <ShoppingCart
-                      size={14}
-                    />
+                    <ShoppingCart size={14} />
 
                     View Cart
 
-                    <ArrowRight
-                      size={13}
-                    />
+                    <ArrowRight size={13} />
 
                   </button>
 
@@ -661,14 +606,15 @@ function ProductCard({
           (product) => {
 
             // =================================================
-            // IMPORTANT FIX:
-            // Use ONLY MongoDB _id
+            // PRODUCT ID
             // =================================================
 
             const productId =
               product._id;
 
-            // SAFE IMAGE SELECTION
+            // =================================================
+            // IMAGE
+            // =================================================
 
             const image =
               typeof product.image === "string" &&
@@ -715,8 +661,7 @@ function ProductCard({
                   {/* DISCOUNT */}
 
                   <span className="absolute left-0 top-0 z-20 rounded-br-xl rounded-tl-xl bg-red-500 px-2.5 py-1.5 text-[10px] font-black text-white shadow">
-                    {product.discount ||
-                      "SALE"}
+                    {product.discount || "SALE"}
                   </span>
 
                   {/* WISHLIST */}
@@ -730,7 +675,6 @@ function ProductCard({
                     }
                     className="absolute right-2 top-2 z-30 flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-md transition hover:scale-110"
                   >
-
                     <Heart
                       size={15}
                       className={
@@ -741,10 +685,109 @@ function ProductCard({
                           : "text-gray-600"
                       }
                     />
-
                   </button>
 
-                  {/* IMAGE */}
+                  {/* =================================================
+                      MOBILE 3-DOT BUTTON
+                  ================================================= */}
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+
+                      setOpenMenu(
+                        openMenu === productId
+                          ? null
+                          : productId
+                      );
+                    }}
+                    className="
+                      absolute
+                      right-2
+                      top-12
+                      z-30
+                      flex
+                      h-8
+                      w-8
+                      items-center
+                      justify-center
+                      rounded-full
+                      bg-white
+                      text-gray-700
+                      shadow-md
+                      transition
+                      active:scale-90
+                      sm:hidden
+                    "
+                    aria-label="Product options"
+                  >
+                    <MoreVertical size={18} />
+                  </button>
+
+                  {/* =================================================
+                      MOBILE VIEW DETAILS MENU
+                  ================================================= */}
+
+                  {openMenu === productId && (
+                    <div
+                      className="
+                        absolute
+                        right-2
+                       top-20
+                        z-40
+                        w-32
+                        overflow-hidden
+                        rounded-xl
+                        bg-white
+                        shadow-xl
+                        sm:hidden
+                      "
+                    >
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+
+                          setOpenMenu(null);
+
+                          if (!product._id) {
+                            console.error(
+                              "MongoDB _id is missing:",
+                              product
+                            );
+                            return;
+                          }
+
+                          navigate(
+                            `/product/${product._id}`
+                          );
+                        }}
+                        className="
+                          flex
+                          w-full
+                          items-center
+                          gap-2
+                          px-3
+                          py-2.5
+                          text-left
+                          text-[11px]
+                          font-bold
+                          text-gray-800
+                          transition
+                          hover:bg-gray-100
+                        "
+                      >
+                        <Eye size={14} />
+
+                        View Details
+                      </button>
+                    </div>
+                  )}
+
+                  {/* =================================================
+                      PRODUCT IMAGE
+                  ================================================= */}
 
                   {getImageUrl(image) ? (
                     <img
@@ -788,12 +831,38 @@ function ProductCard({
                   </div>
 
                   {/* =================================================
-                      QUICK VIEW
+                      DESKTOP QUICK VIEW
                   ================================================= */}
 
-                  <div className="absolute inset-0 z-10 flex flex-col justify-end from-black/75 via-black/20 to-transparent opacity-0 transition-all duration-300 group-hover:opacity-100">
+                  <div
+                    className="
+                      absolute
+                      inset-0
+                      z-10
+                      hidden
+                      flex-col
+                      justify-end
+                      opacity-0
+                      transition-all
+                      duration-300
+                      sm:flex
+                      sm:group-hover:opacity-100
+                    "
+                    style={{
+                      backgroundColor:
+                        "rgba(0,0,0,0.60)",
+                    }}
+                  >
 
-                    <div className="translate-y-5 p-3 transition-transform duration-300 group-hover:translate-y-0">
+                    <div
+                      className="
+                        translate-y-5
+                        p-3
+                        transition-transform
+                        duration-300
+                        sm:group-hover:translate-y-0
+                      "
+                    >
 
                       {/* RATING */}
 
@@ -848,21 +917,35 @@ function ProductCard({
                             `/product/${product._id}`
                           );
                         }}
-                        className="flex h-8 w-full items-center justify-center gap-2 rounded-lg bg-white px-3 py-2 text-[9px] font-black text-gray-900 shadow-lg transition hover:bg-orange-500 hover:text-white"
+                        className="
+                          flex
+                          h-8
+                          w-full
+                          items-center
+                          justify-center
+                          gap-2
+                          rounded-lg
+                          bg-white
+                          px-3
+                          py-2
+                          text-[9px]
+                          font-black
+                          text-gray-900
+                          shadow-lg
+                          transition
+                          hover:bg-orange-500
+                          hover:text-white
+                          active:scale-95
+                        "
                       >
-
                         <Eye size={14} />
 
                         VIEW DETAILS
 
-                        <ArrowRight
-                          size={12}
-                        />
-
+                        <ArrowRight size={12} />
                       </button>
 
                     </div>
-
                   </div>
 
                 </div>
@@ -1014,8 +1097,7 @@ function ProductCard({
           NO PRODUCTS
       ================================================= */}
 
-      {filteredProducts.length ===
-        0 && (
+      {filteredProducts.length === 0 && (
         <div className="py-10 text-center">
 
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
