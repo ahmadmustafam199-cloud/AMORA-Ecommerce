@@ -187,7 +187,7 @@ function Dashboard() {
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50">
       {/* ================= SIDEBAR ================= */}
-      <div className="w-50 shrink-0 z-20 border-r border-slate-200 bg-white">
+      <div className="w-64 shrink-0 z-20 border-r border-slate-200 bg-white">
         <Sidebar />
       </div>
 
@@ -199,7 +199,7 @@ function Dashboard() {
         </header>
 
         {/* PAGE CONTENT */}
-        <main className="flex-1 overflow-y-auto pt-15 p-6">
+        <main className="flex-1 overflow-y-auto p-4 md:p-6">
           {/* ORDERS CARD */}
           <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
             {/* CARD HEADER */}
@@ -237,20 +237,20 @@ function Dashboard() {
                 </div>
               </div>
             ) : (
-              /* TABLE */
-              <div className="w-full overflow-hidden">
-                <table className="w-full table-fixed text-left">
+              /* TABLE CONTAINER */
+              <div className="w-full overflow-x-auto">
+                <table className="w-full min-w-200 text-left">
                   {/* TABLE HEAD */}
                   <thead className="border-b border-slate-200 bg-slate-50">
                     <tr>
-                      <th className="w-[5%] px-2 py-3 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500">#</th>
-                      <th className="w-[15%] px-3 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">Customer</th>
-                      <th className="w-[20%] px-3 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">Address</th>
-                      <th className="w-[13%] px-3 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">Phone</th>
-                      <th className="w-[18%] px-3 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">Products & Qty</th>
-                      <th className="w-[12%] px-3 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">Total</th>
-                      <th className="w-[10%] px-3 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">Status</th>
-                      <th className="w-[12%] px-2 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">Actions</th>
+                      <th className="w-12.5 px-3 py-3 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500">#</th>
+                      <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">Customer</th>
+                      <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">Address</th>
+                      <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">Phone</th>
+                      <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">Products & Qty</th>
+                      <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">Total</th>
+                      <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">Status</th>
+                      <th className="px-4 py-3 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500">Actions</th>
                     </tr>
                   </thead>
 
@@ -259,35 +259,35 @@ function Dashboard() {
                     {orders.map((order, index) => (
                       <tr key={order._id} className="group transition-all duration-150 hover:bg-slate-50/80">
                         {/* NUMBER */}
-                        <td className="px-2 py-3 text-center">
+                        <td className="px-3 py-3 text-center">
                           <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-xs font-medium text-slate-600 group-hover:bg-blue-100 group-hover:text-blue-600">
                             {index + 1}
                           </span>
                         </td>
 
                         {/* CUSTOMER */}
-                        <td className="px-3 py-3">
+                        <td className="px-4 py-3">
                           <p className="truncate text-xs font-semibold text-slate-900" title={order.customerName}>
                             {order.customerName}
                           </p>
                         </td>
 
                         {/* ADDRESS */}
-                        <td className="px-3 py-3">
-                          <p title={order.address} className="truncate text-xs text-slate-600">
+                        <td className="px-4 py-3">
+                          <p title={order.address} className="max-w-50 truncate text-xs text-slate-600">
                             {order.address}
                           </p>
                         </td>
 
                         {/* PHONE */}
-                        <td className="px-3 py-3">
+                        <td className="px-4 py-3">
                           <span className="inline-block truncate rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] font-medium text-slate-600">
                             {order.phone}
                           </span>
                         </td>
 
                         {/* PRODUCTS */}
-                        <td className="px-3 py-3">
+                        <td className="px-4 py-3">
                           <div className="flex max-h-16 flex-col gap-1 overflow-y-auto">
                             {order.products?.map((product, productIndex) => (
                               <div key={productIndex} className="flex items-center gap-1">
@@ -303,31 +303,31 @@ function Dashboard() {
                         </td>
 
                         {/* TOTAL */}
-                        <td className="px-3 py-3">
+                        <td className="px-4 py-3">
                           <span className="inline-block whitespace-nowrap rounded border border-emerald-100 bg-emerald-50 px-2 py-0.5 text-xs font-bold text-emerald-700">
                             Rs. {order.totalPrice?.toLocaleString() || 0}
                           </span>
                         </td>
 
                         {/* STATUS */}
-                        <td className="px-3 py-3">
+                        <td className="px-4 py-3">
                           <span className={`inline-block whitespace-nowrap rounded-full border px-2 py-0.5 text-[11px] font-semibold capitalize ${getStatusBadge(order.status)}`}>
                             {order.status || "Pending"}
                           </span>
                         </td>
 
                         {/* ACTIONS */}
-                        <td className="px-2 py-3">
-                          <div className="flex items-center justify-center gap-1">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center justify-center gap-1.5">
                             <button
                               onClick={() => handleEdit(order)}
-                              className="cursor-pointer rounded border border-blue-200 bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-600 transition-colors hover:bg-blue-600 hover:text-white"
+                              className="cursor-pointer rounded border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-600 transition-colors hover:bg-blue-600 hover:text-white"
                             >
                               Edit
                             </button>
                             <button
                               onClick={() => handleDelete(order._id)}
-                              className="cursor-pointer rounded border border-red-200 bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-600 transition-colors hover:bg-red-600 hover:text-white"
+                              className="cursor-pointer rounded border border-red-200 bg-red-50 px-2.5 py-1 text-[11px] font-semibold text-red-600 transition-colors hover:bg-red-600 hover:text-white"
                             >
                               Delete
                             </button>
@@ -445,7 +445,7 @@ function Dashboard() {
               </div>
 
               {/* FORM ACTIONS */}
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+              <div className="flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
                 <button
                   type="button"
                   onClick={() => setShowEditModal(false)}
