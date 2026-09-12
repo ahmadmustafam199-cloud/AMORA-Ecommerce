@@ -12,12 +12,17 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useCart } from "./useCart";
 
-const API_URL = "https://amora-backend-lake.vercel.app";
+const API_URL =
+  "https://amora-backend-lake.vercel.app";
 
 function Checkout() {
   const navigate = useNavigate();
 
-  const { cart, totalPrice, clearCart } = useCart();
+  const {
+    cart,
+    totalPrice,
+    clearCart,
+  } = useCart();
 
   const [formData, setFormData] = useState({
     customerName: "",
@@ -31,7 +36,8 @@ function Checkout() {
   const [loading, setLoading] = useState(false);
 
   const deliveryCharges = 500;
-  const finalTotal = totalPrice + deliveryCharges;
+  const finalTotal =
+    totalPrice + deliveryCharges;
 
   // =====================================================
   // IMAGE URL HELPER
@@ -40,12 +46,10 @@ function Checkout() {
   const getImageUrl = (item) => {
     if (!item) return "";
 
-    // Cart mein image already available
     if (item.image) {
       return item.image;
     }
 
-    // Backend se images array aa rahi ho
     if (
       Array.isArray(item.images) &&
       item.images.length > 0
@@ -56,9 +60,9 @@ function Checkout() {
     return "";
   };
 
-  // ==========================================
+  // =====================================================
   // INPUT CHANGE
-  // ==========================================
+  // =====================================================
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -69,9 +73,9 @@ function Checkout() {
     }));
   };
 
-  // ==========================================
+  // =====================================================
   // PLACE ORDER
-  // ==========================================
+  // =====================================================
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -84,6 +88,10 @@ function Checkout() {
     setLoading(true);
 
     try {
+      // =================================================
+      // FORMAT PRODUCTS
+      // =================================================
+
       const products = cart.map((item) => {
         const price =
           typeof item.price === "string"
@@ -99,11 +107,13 @@ function Checkout() {
           name: item.name,
           price,
           quantity: item.quantity,
-
-          // Correct image URL
           image: getImageUrl(item),
         };
       });
+
+      // =================================================
+      // CREATE ORDER
+      // =================================================
 
       const response = await fetch(
         `${API_URL}/api/orders`,
@@ -115,14 +125,28 @@ function Checkout() {
           },
 
           body: JSON.stringify({
-            customerName: formData.customerName,
-            customerEmail: formData.customerEmail,
-            address: formData.address,
-            city: formData.city,
-            phone: formData.phone,
-            paymentMethod: formData.paymentMethod,
+            customerName:
+              formData.customerName,
+
+            customerEmail:
+              formData.customerEmail,
+
+            address:
+              formData.address,
+
+            city:
+              formData.city,
+
+            phone:
+              formData.phone,
+
+            paymentMethod:
+              formData.paymentMethod,
+
             products,
+
             deliveryCharges,
+
             totalPrice: finalTotal,
           }),
         }
@@ -132,15 +156,56 @@ function Checkout() {
 
       if (!response.ok) {
         throw new Error(
-          data.message || "Failed to place order"
+          data.message ||
+            "Failed to place order"
         );
       }
 
-      // Empty cart
+      // =================================================
+      // SAVE CUSTOMER ORDER ID
+      // =================================================
+
+      const savedOrderId =
+        data.order?._id;
+
+      if (savedOrderId) {
+        const existingOrderIds =
+          JSON.parse(
+            localStorage.getItem(
+              "customerOrderIds"
+            ) || "[]"
+          );
+
+        if (
+          !existingOrderIds.includes(
+            savedOrderId
+          )
+        ) {
+          existingOrderIds.push(
+            savedOrderId
+          );
+        }
+
+        localStorage.setItem(
+          "customerOrderIds",
+          JSON.stringify(
+            existingOrderIds
+          )
+        );
+      }
+
+      // =================================================
+      // CLEAR CART
+      // =================================================
+
       clearCart();
 
-      // Go to success page
+      // =================================================
+      // SUCCESS PAGE
+      // =================================================
+
       navigate("/order-success");
+
     } catch (error) {
       console.error(
         "Place Order Error:",
@@ -156,9 +221,9 @@ function Checkout() {
     }
   };
 
-  // ==========================================
+  // =====================================================
   // EMPTY CART
-  // ==========================================
+  // =====================================================
 
   if (cart.length === 0) {
     return (
@@ -183,6 +248,7 @@ function Checkout() {
             onClick={() => navigate("/")}
             className="
               mt-6
+              cursor-pointer
               rounded-xl
               bg-orange-500
               px-6
@@ -192,7 +258,6 @@ function Checkout() {
               text-white
               transition
               hover:bg-orange-600
-              cursor-pointer
             "
           >
             Continue Shopping
@@ -209,13 +274,14 @@ function Checkout() {
 
       <div className="mx-auto max-w-6xl">
 
-        {/* Back */}
+        {/* BACK TO CART */}
+
         <button
           onClick={() => navigate("/cart")}
           className="
-            cursor-pointer
             mb-6
             flex
+            cursor-pointer
             items-center
             gap-1
             text-[15px]
@@ -231,11 +297,11 @@ function Checkout() {
 
         <div className="grid gap-6 lg:grid-cols-3">
 
-          {/* =====================================
+          {/* =================================================
               CUSTOMER FORM
-          ====================================== */}
+          ================================================= */}
 
-          <div className="lg:col-span-2 rounded-2xl bg-white p-6 shadow-lg">
+          <div className="rounded-2xl bg-white p-6 shadow-lg lg:col-span-2">
 
             <div className="mb-6">
 
@@ -254,7 +320,8 @@ function Checkout() {
               className="space-y-5"
             >
 
-              {/* Name */}
+              {/* NAME */}
+
               <div>
 
                 <label className="mb-2 block text-sm font-semibold text-gray-700">
@@ -277,7 +344,9 @@ function Checkout() {
                   <input
                     type="text"
                     name="customerName"
-                    value={formData.customerName}
+                    value={
+                      formData.customerName
+                    }
                     onChange={handleChange}
                     placeholder="Enter your full name"
                     required
@@ -302,7 +371,8 @@ function Checkout() {
 
               </div>
 
-              {/* Email */}
+              {/* EMAIL */}
+
               <div>
 
                 <label className="mb-2 block text-sm font-semibold text-gray-700">
@@ -325,7 +395,9 @@ function Checkout() {
                   <input
                     type="email"
                     name="customerEmail"
-                    value={formData.customerEmail}
+                    value={
+                      formData.customerEmail
+                    }
                     onChange={handleChange}
                     placeholder="Enter your email"
                     required
@@ -350,7 +422,8 @@ function Checkout() {
 
               </div>
 
-              {/* Phone */}
+              {/* PHONE */}
+
               <div>
 
                 <label className="mb-2 block text-sm font-semibold text-gray-700">
@@ -398,7 +471,8 @@ function Checkout() {
 
               </div>
 
-              {/* Address */}
+              {/* ADDRESS */}
+
               <div>
 
                 <label className="mb-2 block text-sm font-semibold text-gray-700">
@@ -446,7 +520,8 @@ function Checkout() {
 
               </div>
 
-              {/* City */}
+              {/* CITY */}
+
               <div>
 
                 <label className="mb-2 block text-sm font-semibold text-gray-700">
@@ -494,7 +569,8 @@ function Checkout() {
 
               </div>
 
-              {/* Payment Method */}
+              {/* PAYMENT */}
+
               <div className="relative">
 
                 <label className="mb-2 block text-sm font-semibold text-gray-700">
@@ -506,14 +582,16 @@ function Checkout() {
                   className="
                     absolute
                     left-3
-                    top-9.5
+                    top-10
                     text-gray-400
                   "
                 />
 
                 <select
                   name="paymentMethod"
-                  value={formData.paymentMethod}
+                  value={
+                    formData.paymentMethod
+                  }
                   onChange={handleChange}
                   required
                   className="
@@ -545,13 +623,15 @@ function Checkout() {
 
               </div>
 
-              {/* Submit */}
+              {/* SUBMIT */}
+
               <button
                 type="submit"
                 disabled={loading}
                 className="
                   flex
                   w-full
+                  cursor-pointer
                   items-center
                   justify-center
                   gap-2
@@ -567,10 +647,8 @@ function Checkout() {
                   hover:bg-orange-600
                   disabled:cursor-not-allowed
                   disabled:opacity-60
-                  cursor-pointer
                 "
               >
-
                 {loading ? (
                   "Placing Order..."
                 ) : (
@@ -579,16 +657,14 @@ function Checkout() {
                     Place Order
                   </>
                 )}
-
               </button>
 
             </form>
-
           </div>
 
-          {/* =====================================
+          {/* =================================================
               ORDER SUMMARY
-          ====================================== */}
+          ================================================= */}
 
           <div className="h-fit rounded-2xl bg-white p-6 shadow-lg">
 
@@ -596,12 +672,11 @@ function Checkout() {
               Order Summary
             </h2>
 
-            {/* Products */}
             <div className="mt-5 space-y-4">
 
-              {cart.map((item) => (
+              {cart.map((item, index) => (
                 <div
-                  key={item.name}
+                  key={`${item.name}-${index}`}
                   className="flex items-center gap-3"
                 >
 
@@ -656,7 +731,8 @@ function Checkout() {
 
             </div>
 
-            {/* Price */}
+            {/* PRICE */}
+
             <div className="mt-6 space-y-3 border-t pt-5">
 
               <div className="flex justify-between">
@@ -666,7 +742,8 @@ function Checkout() {
                 </span>
 
                 <span className="text-sm font-semibold">
-                  PKR {totalPrice.toLocaleString()}
+                  PKR{" "}
+                  {totalPrice.toLocaleString()}
                 </span>
 
               </div>
@@ -690,7 +767,8 @@ function Checkout() {
                 </span>
 
                 <span className="text-lg font-bold text-orange-500">
-                  PKR {finalTotal.toLocaleString()}
+                  PKR{" "}
+                  {finalTotal.toLocaleString()}
                 </span>
 
               </div>

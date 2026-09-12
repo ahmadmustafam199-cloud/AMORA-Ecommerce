@@ -1,134 +1,169 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+const API_URL =
+  "https://amora-backend-lake.vercel.app";
+
 function AdminLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
 
-    // Temporary admin credentials
-    if (email === "ahmad@gmail.com" && password === "@chisti*123") {
-      localStorage.setItem("adminLogin", "true");
+    setLoading(true);
+
+    try {
+      const response = await fetch(
+        `${API_URL}/api/admin/login`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+            password,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || "Invalid Email or Password"
+        );
+      }
+
+      localStorage.setItem(
+        "adminToken",
+        data.token
+      );
+
+      localStorage.setItem(
+        "adminLogin",
+        "true"
+      );
+
       navigate("/dashboard");
-    } else {
-      alert("Invalid Email or Password");
+    } catch (error) {
+      alert(
+        error.message ||
+          "Unable to login"
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="w-96 bg-white p-8 rounded-2xl shadow-lg">
-       <h2 className="text-3xl font-extrabold font-serif text-center mb-2 text-cyan-600 tracking-wide">
-  Admin Login
-</h2>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-lg">
 
-<p className="text-center text-gray-400 text-sm mb-7">
-  Welcome back! Please login to continue.
-</p>
+        <h2 className="mb-2 text-center font-serif text-3xl font-extrabold tracking-wide text-cyan-600">
+          Admin Login
+        </h2>
 
-<form onSubmit={handleLogin} className="space-y-6">
+        <p className="mb-7 text-center text-sm text-gray-400">
+          Welcome back! Please login to continue.
+        </p>
 
-  {/* Email */}
-  <div className="relative">
-    <label className="block mb-2 text-sm text-cyan-600 font-bold font-serif">
-      Email Address
-    </label>
+        <form
+          onSubmit={handleLogin}
+          className="space-y-6"
+        >
 
-    <div className="relative">
-      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-500">
-        ✉
-      </span>
+          <div>
+            <label className="mb-2 block font-serif text-sm font-bold text-cyan-600">
+              Email Address
+            </label>
 
-      <input
-        type="email"
-        placeholder="Enter your email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        className="
-          w-full
-          pl-11 pr-4 py-3.5
-          bg-white
-          border border-gray-200
-          rounded-xl
-          text-gray-700
-          placeholder-gray-400
-          outline-none
-          transition-all duration-300
-          focus:border-cyan-500
-          focus:ring-4 focus:ring-cyan-500/20
-          shadow-sm
-        "
-        required
-      />
-    </div>
-  </div>
+            <input
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) =>
+                setEmail(e.target.value)
+              }
+              required
+              className="
+                w-full
+                rounded-xl
+                border border-gray-200
+                bg-white
+                px-4
+                py-3.5
+                text-gray-700
+                outline-none
+                transition
+                focus:border-cyan-500
+                focus:ring-4
+                focus:ring-cyan-500/20
+              "
+            />
+          </div>
 
-  {/* Password */}
-  <div>
-    <label className="block mb-2 text-sm text-cyan-600 font-bold font-serif">
-      Password
-    </label>
+          <div>
+            <label className="mb-2 block font-serif text-sm font-bold text-cyan-600">
+              Password
+            </label>
 
-    <div className="relative">
-      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-500">
-        🔒
-      </span>
+            <input
+              type="password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) =>
+                setPassword(e.target.value)
+              }
+              required
+              className="
+                w-full
+                rounded-xl
+                border border-gray-200
+                bg-white
+                px-4
+                py-3.5
+                text-gray-700
+                outline-none
+                transition
+                focus:border-cyan-500
+                focus:ring-4
+                focus:ring-cyan-500/20
+              "
+            />
+          </div>
 
-      <input
-        type="password"
-        placeholder="Enter your password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        className="
-          w-full
-          pl-11 pr-4 py-3.5
-          bg-white
-          border border-gray-200
-          rounded-xl
-          text-gray-700
-          placeholder-gray-400
-          outline-none
-          transition-all duration-300
-          focus:border-cyan-500
-          focus:ring-4 focus:ring-cyan-500/20
-          shadow-sm
-        "
-        required
-      />
-    </div>
-  </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="
+              w-full
+              cursor-pointer
+              rounded-xl
+              bg-cyan-600
+              py-3.5
+              font-serif
+              font-bold
+              tracking-wide
+              text-white
+              shadow-lg
+              shadow-cyan-500/30
+              transition
+              hover:bg-cyan-700
+              disabled:cursor-not-allowed
+              disabled:opacity-60
+            "
+          >
+            {loading
+              ? "Logging in..."
+              : "Login"}
+          </button>
 
-  {/* Login Button */}
-  <button
-    type="submit"
-    className="
-      w-full
-      py-3.5
-      rounded-xl
-      bg-cyan-600
-      text-white
-      font-bold
-      font-serif
-      tracking-wide
-      shadow-lg
-      shadow-cyan-500/30
-      transition-all duration-300
-      hover:bg-cyan-700
-      hover:shadow-xl
-      hover:shadow-cyan-500/40
-      hover:-translate-y-0.5
-      active:translate-y-0
-      cursor-pointer
-    "
-  >
-    Login
-  </button>
-
-</form>
+        </form>
       </div>
     </div>
   );

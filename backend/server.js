@@ -18,6 +18,7 @@ const Product = require("./models/Product");
 const productRoutes = require("./routes/productRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const reviewRoutes = require("./routes/reviewRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 
 // =====================================================
 // APP
@@ -33,8 +34,17 @@ app.use(
   cors({
     origin: true,
     credentials: false,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    methods: [
+      "GET",
+      "POST",
+      "PUT",
+      "DELETE",
+      "OPTIONS",
+    ],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+    ],
   })
 );
 
@@ -43,16 +53,21 @@ app.use(
 // =====================================================
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(
+  express.urlencoded({
+    extended: true,
+  })
+);
 
 // =====================================================
 // STATIC UPLOADS
 // =====================================================
 
-// Product images stored inside /uploads folder
 app.use(
   "/uploads",
-  express.static(path.join(__dirname, "uploads"))
+  express.static(
+    path.join(__dirname, "uploads")
+  )
 );
 
 // =====================================================
@@ -80,9 +95,12 @@ const connectDB = async () => {
   }
 
   try {
-    const db = await mongoose.connect(mongoURI, {
-      serverSelectionTimeoutMS: 10000,
-    });
+    const db = await mongoose.connect(
+      mongoURI,
+      {
+        serverSelectionTimeoutMS: 10000,
+      }
+    );
 
     cachedDb = db;
 
@@ -110,6 +128,7 @@ const connectDB = async () => {
 app.use(async (req, res, next) => {
   try {
     await connectDB();
+
     next();
   } catch (error) {
     console.error(
@@ -119,7 +138,8 @@ app.use(async (req, res, next) => {
 
     res.status(500).json({
       success: false,
-      message: "Database connection failed",
+      message:
+        "Database connection failed",
     });
   }
 });
@@ -144,18 +164,18 @@ app.get(
   "/sitemap-products.xml",
   async (req, res) => {
     try {
-      // Get all products from MongoDB
-      const products = await Product.find({})
-        .select("_id updatedAt")
-        .sort({ updatedAt: -1 })
-        .lean();
+      const products =
+        await Product.find({})
+          .select("_id updatedAt")
+          .sort({
+            updatedAt: -1,
+          })
+          .lean();
 
-      // Frontend website URL
-     const SITE_URL =
-     process.env.FRONTEND_URL ||
-     "https://amora-ecommerce.vercel.app";
+      const SITE_URL =
+        process.env.FRONTEND_URL ||
+        "https://amora-ecommerce.vercel.app";
 
-      // Generate product URLs
       const productUrls = products
         .map((product) => {
           const productId =
@@ -178,7 +198,6 @@ app.get(
         })
         .join("");
 
-      // Complete XML sitemap
       const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset
   xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
@@ -222,6 +241,15 @@ app.use(
 app.use(
   "/api/reviews",
   reviewRoutes
+);
+
+// =====================================================
+// ADMIN LOGIN
+// =====================================================
+
+app.use(
+  "/api/admin",
+  adminRoutes
 );
 
 // =====================================================

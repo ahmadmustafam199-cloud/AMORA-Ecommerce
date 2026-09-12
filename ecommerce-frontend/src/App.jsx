@@ -21,6 +21,7 @@ import AdminLogin from "./AdminLogin";
 import Dashboard from "./Dashboard";
 import AllProducts from "./AllProducts";
 import AddProduct from "./AddProduct";
+import AdminOrders from "./AdminOrders";
 
 import AdminProtectedRoute from "./AdminProtectedRoute";
 
@@ -29,21 +30,20 @@ function AppContent() {
 
   // =====================================================
   // SEARCH STATE
-  // StoreNavbar + Home + ProductCard
   // =====================================================
 
   const [search, setSearch] = useState("");
 
   // =====================================================
   // CATEGORY STATE
-  // StoreNavbar + Home + CategorySection + ProductCard
   // =====================================================
 
-  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedCategory, setSelectedCategory] =
+    useState("");
 
   // =====================================================
   // ADMIN PAGES
-  // Store Navbar/Footer hide hoga
+  // Store Navbar + Footer hide honge
   // =====================================================
 
   const isAdminPage =
@@ -52,7 +52,8 @@ function AppContent() {
     location.pathname === "/AllProducts" ||
     location.pathname === "/all-products" ||
     location.pathname === "/AddProduct" ||
-    location.pathname === "/add-product";
+    location.pathname === "/add-product" ||
+    location.pathname === "/admin-orders";
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -75,14 +76,12 @@ function AppContent() {
       ================================================= */}
 
       <main className="flex-1">
-
         <Routes>
 
           {/* =================================================
               STORE PAGES
           ================================================= */}
 
-          {/* HOME */}
           <Route
             path="/"
             element={
@@ -140,12 +139,40 @@ function AppContent() {
           />
 
           {/* =================================================
-              ORDERS
+              CUSTOMER ORDERS
+              No Edit / Delete
           ================================================= */}
 
           <Route
             path="/orders"
             element={<Orders />}
+          />
+
+          {/* =================================================
+              ABOUT
+          ================================================= */}
+
+          <Route
+            path="/about"
+            element={<About />}
+          />
+
+          {/* =================================================
+              CONTACT
+          ================================================= */}
+
+          <Route
+            path="/contact"
+            element={<Contact />}
+          />
+
+          {/* =================================================
+              DEALS
+          ================================================= */}
+
+          <Route
+            path="/deals"
+            element={<Deals />}
           />
 
           {/* =================================================
@@ -169,11 +196,9 @@ function AppContent() {
               </AdminProtectedRoute>
             }
           />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/deals" element={<Deals />} />
 
           {/* =================================================
-              ALL PRODUCTS
+              ADMIN ALL PRODUCTS
           ================================================= */}
 
           <Route
@@ -195,7 +220,7 @@ function AppContent() {
           />
 
           {/* =================================================
-              ADD PRODUCT
+              ADMIN ADD PRODUCT
           ================================================= */}
 
           <Route
@@ -215,10 +240,22 @@ function AppContent() {
               </AdminProtectedRoute>
             }
           />
-          <Route path="/about" element={<About />} />
+
+          {/* =================================================
+              ADMIN ORDERS
+              Edit / Delete only here
+          ================================================= */}
+
+          <Route
+            path="/admin-orders"
+            element={
+              <AdminProtectedRoute>
+                <AdminOrders />
+              </AdminProtectedRoute>
+            }
+          />
 
         </Routes>
-
       </main>
 
       {/* =================================================
