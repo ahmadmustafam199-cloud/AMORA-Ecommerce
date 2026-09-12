@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useCallback } from "react";
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
@@ -33,6 +32,14 @@ function Dashboard() {
   });
 
   // ==========================================
+  // GET ADMIN TOKEN
+  // ==========================================
+
+  const getAdminToken = () => {
+    return localStorage.getItem("adminToken");
+  };
+
+  // ==========================================
   // REFRESH ORDERS
   // ==========================================
 
@@ -41,19 +48,36 @@ function Dashboard() {
     setError(null);
 
     try {
-      const response = await fetch(`${API_URL}/api/orders`);
+      const token = getAdminToken();
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch orders");
+      if (!token) {
+        throw new Error(
+          "Admin authentication required. Please login again."
+        );
       }
 
+      const response = await fetch(`${API_URL}/api/orders`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
       const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || "Failed to fetch orders"
+        );
+      }
+
       setOrders(data);
     } catch (err) {
       console.error("Orders Error:", err);
 
       setError(
-        err.message || "Something went wrong while fetching orders."
+        err.message ||
+          "Something went wrong while fetching orders."
       );
     } finally {
       setLoading(false);
@@ -65,42 +89,10 @@ function Dashboard() {
   // ==========================================
 
   useEffect(() => {
-    let isMounted = true;
-
-    const getOrders = async () => {
-      try {
-        const response = await fetch(`${API_URL}/api/orders`);
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch orders");
-        }
-
-        const data = await response.json();
-
-        if (isMounted) {
-          setOrders(data);
-          setLoading(false);
-        }
-      } catch (err) {
-        console.error("Orders Error:", err);
-
-        if (isMounted) {
-          setError(
-            err.message ||
-              "Something went wrong while fetching orders."
-          );
-
-          setLoading(false);
-        }
-      }
-    };
-
-    getOrders();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+    // Synchronize component state with the external orders API.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    refetchOrders();
+  }, [refetchOrders]);
 
   // ==========================================
   // EDIT ORDER
@@ -157,12 +149,21 @@ function Dashboard() {
     setIsUpdating(true);
 
     try {
+      const token = getAdminToken();
+
+      if (!token) {
+        throw new Error(
+          "Admin authentication required. Please login again."
+        );
+      }
+
       const response = await fetch(
         `${API_URL}/api/orders/${editForm._id}`,
         {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
             customerName: editForm.customerName,
@@ -221,15 +222,30 @@ function Dashboard() {
     if (!confirmDelete) return;
 
     try {
+      const token = getAdminToken();
+
+      if (!token) {
+        throw new Error(
+          "Admin authentication required. Please login again."
+        );
+      }
+
       const response = await fetch(
         `${API_URL}/api/orders/${id}`,
         {
           method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error("Failed to delete order");
+        throw new Error(
+          data.message || "Failed to delete order"
+        );
       }
 
       setOrders((prevOrders) =>
@@ -238,7 +254,9 @@ function Dashboard() {
     } catch (err) {
       console.error("Delete Order Error:", err);
 
-      alert("Order deletion failed.");
+      alert(
+        err.message || "Order deletion failed."
+      );
     }
   };
 
@@ -644,9 +662,9 @@ function Dashboard() {
                     {orders.map((order, index) => (
 
                       <div
-  key={order._id || index}
-  className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
->
+                        key={order._id || index}
+                        className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+                      >
 
                         {/* CARD HEADER */}
 
@@ -1002,4 +1020,3 @@ function Dashboard() {
 }
 
 export default Dashboard;
-
