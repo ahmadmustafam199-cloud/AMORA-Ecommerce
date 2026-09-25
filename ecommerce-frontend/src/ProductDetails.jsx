@@ -148,11 +148,13 @@ function ProductDetails() {
     return (
       <div className="flex min-h-[70vh] items-center justify-center bg-gray-50">
         <div className="text-center">
+
           <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-orange-500" />
 
           <p className="mt-4 text-sm font-semibold text-gray-500">
             Loading product...
           </p>
+
         </div>
       </div>
     );
@@ -165,7 +167,9 @@ function ProductDetails() {
   if (!product) {
     return (
       <div className="flex min-h-[70vh] items-center justify-center bg-gray-50 px-4">
+
         <div className="text-center">
+
           <Package
             size={50}
             className="mx-auto text-gray-300"
@@ -186,7 +190,9 @@ function ProductDetails() {
           >
             Back To Home
           </button>
+
         </div>
+
       </div>
     );
   }
@@ -364,6 +370,18 @@ function ProductDetails() {
     );
   };
 
+  // =====================================================
+  // OPEN PRODUCT CATEGORY
+  // =====================================================
+
+  const handleCategoryClick = () => {
+    navigate("/", {
+      state: {
+        selectedCategory: productCategory,
+      },
+    });
+  };
+
   return (
     <>
       {/* =================================================
@@ -389,31 +407,49 @@ function ProductDetails() {
       />
 
       <div className="w-full bg-gray-50">
+
         <div className="px-4 py-6 md:px-7 lg:px-10">
 
           {/* =================================================
               BREADCRUMB
           ================================================= */}
 
-          <div className="flex items-center gap-2 text-xs text-gray-500">
+          <div className="flex min-w-0 items-center gap-2 overflow-hidden text-xs text-gray-500">
+
+            {/* HOME */}
 
             <button
+              type="button"
               onClick={() => navigate("/")}
-              className="cursor-pointer transition hover:text-orange-500"
+              className="shrink-0 cursor-pointer font-medium transition hover:text-orange-500"
             >
               Home
             </button>
 
-            <ChevronRight size={13} />
+            <ChevronRight
+              size={13}
+              className="shrink-0 text-gray-400"
+            />
 
-            <span>
-              {product.category || "Product"}
-            </span>
+            {/* CATEGORY */}
 
-            <ChevronRight size={13} />
+            <button
+              type="button"
+              onClick={handleCategoryClick}
+              className="max-w-22.5 shrink-0 cursor-pointer truncate font-medium capitalize transition hover:text-orange-500 sm:max-w-none"
+            >
+              {productCategory}
+            </button>
 
-            <span className="truncate font-medium text-gray-800">
-              {product.name}
+            <ChevronRight
+              size={13}
+              className="shrink-0 text-gray-400"
+            />
+
+            {/* PRODUCT NAME */}
+
+            <span className="min-w-0 truncate font-medium text-gray-800">
+              {productName}
             </span>
 
           </div>
@@ -441,6 +477,7 @@ function ProductDetails() {
                 {/* Wishlist */}
 
                 <button
+                  type="button"
                   onClick={() =>
                     setWishlist(!wishlist)
                   }
@@ -465,13 +502,14 @@ function ProductDetails() {
                       src={getImageUrl(currentImage)}
                       alt={`${productName} - AMORA`}
                       className="
-                      h-64 w-64
-                      object-contain
-                      transition-all
-                      duration-700
-                      ease-out
-                      group-hover:scale-125
-                      group-hover:rotate-1
+                        h-64
+                        w-64
+                        object-contain
+                        transition-all
+                        duration-700
+                        ease-out
+                        group-hover:scale-125
+                        group-hover:rotate-1
                       "
                       onError={(e) => {
                         e.currentTarget.style.display =
@@ -494,6 +532,7 @@ function ProductDetails() {
                   {productImages.map(
                     (image, index) => (
                       <button
+                        type="button"
                         key={index}
                         onClick={() =>
                           setSelectedImage(index)
@@ -530,8 +569,7 @@ function ProductDetails() {
                 <div className="flex items-center gap-2">
 
                   <span className="rounded-full bg-orange-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-orange-600">
-                    {product.category ||
-                      "Product"}
+                    {productCategory}
                   </span>
 
                   <span className="text-[10px] text-gray-400">
@@ -543,7 +581,7 @@ function ProductDetails() {
                 {/* Product Name */}
 
                 <h1 className="mt-2 text-[18px] font-bold leading-tight text-gray-900">
-                  {product.name}
+                  {productName}
                 </h1>
 
                 {/* =================================================
@@ -586,13 +624,13 @@ function ProductDetails() {
                   {/* See Reviews */}
 
                   <button
+                    type="button"
                     onClick={handleReviews}
                     className="flex cursor-pointer items-center gap-1.5 text-xs font-semibold text-orange-500 transition hover:text-orange-600 hover:underline"
                   >
                     <MessageSquare size={13} />
 
                     {product.reviews || 0} Reviews
-
                   </button>
 
                 </div>
@@ -685,6 +723,7 @@ function ProductDetails() {
                   <div className="flex w-fit items-center overflow-hidden rounded-lg border border-gray-200 bg-white">
 
                     <button
+                      type="button"
                       onClick={() =>
                         setQuantity(
                           Math.max(
@@ -703,6 +742,7 @@ function ProductDetails() {
                     </span>
 
                     <button
+                      type="button"
                       onClick={() =>
                         setQuantity(
                           quantity + 1
@@ -726,6 +766,7 @@ function ProductDetails() {
                   {/* Add To Cart */}
 
                   <button
+                    type="button"
                     onClick={handleAddToCart}
                     disabled={stockNumber === 0}
                     className={`flex cursor-pointer items-center justify-center gap-2 rounded-lg px-4 py-3 text-xs font-bold text-white shadow-md transition-all ${
@@ -752,6 +793,7 @@ function ProductDetails() {
                   {/* Buy Now */}
 
                   <button
+                    type="button"
                     onClick={handleBuyNow}
                     disabled={stockNumber === 0}
                     className={`cursor-pointer rounded-lg px-4 py-3 text-xs font-bold text-white transition-all ${
@@ -882,6 +924,7 @@ function ProductDetails() {
               {/* Right */}
 
               <button
+                type="button"
                 onClick={handleReviews}
                 className="flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-gray-900 px-5 py-3 text-xs font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-black"
               >
@@ -898,6 +941,7 @@ function ProductDetails() {
           </div>
 
         </div>
+
       </div>
     </>
   );

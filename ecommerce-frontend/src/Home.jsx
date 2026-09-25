@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 
 import Hero from "./Hero";
 import CategorySection from "./CategorySection";
@@ -10,6 +11,20 @@ function Home({
   selectedCategory = "",
   setSelectedCategory = () => {},
 }) {
+  const location = useLocation();
+
+  // ==========================================
+  // CATEGORY FROM PRODUCT DETAILS BREADCRUMB
+  // ==========================================
+  useEffect(() => {
+    const categoryFromProduct =
+      location.state?.selectedCategory;
+
+    if (categoryFromProduct) {
+      setSelectedCategory(categoryFromProduct);
+    }
+  }, [location.state, setSelectedCategory]);
+
   // ==========================================
   // CATEGORY CLICK FROM CATEGORY SECTION
   // ==========================================
@@ -30,16 +45,24 @@ function Home({
   // SEARCH ACTIVE HOTE HI CATEGORY CLEAR
   // ==========================================
   useEffect(() => {
-    if (search.trim() !== "" && selectedCategory !== "") {
+    if (
+      search.trim() !== "" &&
+      selectedCategory !== ""
+    ) {
       setSelectedCategory("");
     }
-  }, [search, selectedCategory, setSelectedCategory]);
+  }, [
+    search,
+    selectedCategory,
+    setSelectedCategory,
+  ]);
 
   return (
     <>
       {/* ==========================================
           HOME PAGE SEO
       ========================================== */}
+
       <SEO
         title="AMORA – Elegance & Style | Premium Fashion & Lifestyle"
         description="Shop premium fashion, shoes, bags, electronics, beauty, sports and lifestyle products at AMORA. Discover quality products, modern style and a seamless online shopping experience."
@@ -51,21 +74,26 @@ function Home({
         {/* ==========================================
             HERO
         ========================================== */}
+
         <Hero />
 
         {/* ==========================================
             CATEGORIES
         ========================================== */}
+
         <section className="px-3 py-4 sm:px-5 lg:px-8">
+
           <CategorySection
             onCategoryClick={handleCategoryClick}
             selectedCategory={selectedCategory}
           />
+
         </section>
 
         {/* ==========================================
             FEATURED PRODUCTS HEADER
         ========================================== */}
+
         <section className="flex flex-col items-start justify-between gap-3 px-4 sm:flex-row sm:items-center sm:px-6 lg:px-12 lg:pr-8">
 
           <div>
@@ -75,28 +103,40 @@ function Home({
             </h2>
 
             {/* Selected Category */}
+
             {selectedCategory && (
               <p className="mt-1 text-sm text-gray-500">
+
                 Showing products from{" "}
+
                 <span className="font-bold text-orange-500">
                   {selectedCategory}
                 </span>
+
               </p>
             )}
 
             {/* Search */}
-            {!selectedCategory && search.trim() !== "" && (
-              <p className="mt-1 text-sm text-gray-500">
-                Search results for{" "}
-                <span className="font-bold text-orange-500">
-                  "{search}"
-                </span>
-              </p>
-            )}
+
+            {!selectedCategory &&
+              search.trim() !== "" && (
+                <p className="mt-1 text-sm text-gray-500">
+
+                  Search results for{" "}
+
+                  <span className="font-bold text-orange-500">
+                    "{search}"
+                  </span>
+
+                </p>
+              )}
 
           </div>
 
-          {/* SHOW ALL */}
+          {/* ==========================================
+              SHOW ALL
+          ========================================== */}
+
           {selectedCategory && (
             <button
               type="button"
@@ -122,6 +162,7 @@ function Home({
         {/* ==========================================
             PRODUCTS
         ========================================== */}
+
         <ProductCard
           search={search}
           selectedCategory={selectedCategory}

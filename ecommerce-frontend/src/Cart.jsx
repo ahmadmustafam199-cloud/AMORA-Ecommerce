@@ -237,7 +237,7 @@ function Cart() {
                 </span>
 
                 <span className="text-[15px] font-semibold text-gray-900">
-                  PKR 500
+                  PKR 250
                 </span>
 
               </div>

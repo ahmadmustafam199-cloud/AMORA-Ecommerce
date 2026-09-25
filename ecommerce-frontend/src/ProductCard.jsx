@@ -59,9 +59,7 @@ const fetchProductsFromAPI = async () => {
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(
-      data.message || "Failed to fetch products"
-    );
+    throw new Error(data.message || "Failed to fetch products");
   }
 
   if (Array.isArray(data)) {
@@ -98,6 +96,24 @@ function ProductCard({
   const [openMenu, setOpenMenu] = useState(null);
 
   const notificationId = useRef(0);
+
+  // =====================================================
+  // OPEN PRODUCT DETAILS
+  // =====================================================
+
+  const handleProductDetails = (product) => {
+    if (!product?._id) {
+      console.error(
+        "MongoDB _id is missing:",
+        product
+      );
+      return;
+    }
+
+    setOpenMenu(null);
+
+    navigate(`/product/${product._id}`);
+  };
 
   // =====================================================
   // FETCH PRODUCTS
@@ -182,8 +198,7 @@ function ProductCard({
             (previous) =>
               previous.filter(
                 (item) =>
-                  item.id !==
-                  notification.id
+                  item.id !== notification.id
               )
           );
         }, 4000)
@@ -668,11 +683,13 @@ function ProductCard({
 
                   <button
                     type="button"
-                    onClick={() =>
+                    onClick={(e) => {
+                      e.stopPropagation();
+
                       toggleWishlist(
                         productId
-                      )
-                    }
+                      );
+                    }}
                     className="absolute right-2 top-2 z-30 flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-md transition hover:scale-110"
                   >
                     <Heart
@@ -734,7 +751,7 @@ function ProductCard({
                       className="
                         absolute
                         right-2
-                       top-20
+                        top-20
                         z-40
                         w-32
                         overflow-hidden
@@ -749,18 +766,8 @@ function ProductCard({
                         onClick={(e) => {
                           e.stopPropagation();
 
-                          setOpenMenu(null);
-
-                          if (!product._id) {
-                            console.error(
-                              "MongoDB _id is missing:",
-                              product
-                            );
-                            return;
-                          }
-
-                          navigate(
-                            `/product/${product._id}`
+                          handleProductDetails(
+                            product
                           );
                         }}
                         className="
@@ -787,6 +794,7 @@ function ProductCard({
 
                   {/* =================================================
                       PRODUCT IMAGE
+                      MOBILE IMAGE CLICK → PRODUCT DETAILS
                   ================================================= */}
 
                   {getImageUrl(image) ? (
@@ -796,7 +804,14 @@ function ProductCard({
                         product.name ||
                         "Product"
                       }
-                      className="h-full w-full object-contain transition-transform duration-700 group-hover:scale-110"
+                      className="h-full w-full cursor-pointer object-contain transition-transform duration-700 group-hover:scale-110"
+                      onClick={(e) => {
+                        e.stopPropagation();
+
+                        handleProductDetails(
+                          product
+                        );
+                      }}
                       onError={(e) => {
                         e.currentTarget.style.display =
                           "none";
@@ -813,12 +828,26 @@ function ProductCard({
                         }
                       }}
                     />
-                  ) : null}
+                  ) : (
+                    <div
+                      className="flex h-full w-full cursor-pointer items-center justify-center"
+                      onClick={() =>
+                        handleProductDetails(
+                          product
+                        )
+                      }
+                    >
+                      <ShoppingCart
+                        size={30}
+                        className="text-gray-300"
+                      />
+                    </div>
+                  )}
 
                   {/* IMAGE FALLBACK */}
 
                   <div
-                    className={`product-image-fallback flex h-full items-center justify-center ${
+                    className={`product-image-fallback pointer-events-none flex h-full items-center justify-center ${
                       getImageUrl(image)
                         ? "hidden"
                         : ""
@@ -904,17 +933,11 @@ function ProductCard({
 
                       <button
                         type="button"
-                        onClick={() => {
-                          if (!product._id) {
-                            console.error(
-                              "MongoDB _id is missing:",
-                              product
-                            );
-                            return;
-                          }
+                        onClick={(e) => {
+                          e.stopPropagation();
 
-                          navigate(
-                            `/product/${product._id}`
+                          handleProductDetails(
+                            product
                           );
                         }}
                         className="
