@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 
 import { CartProvider } from "./CartContext";
@@ -29,6 +29,18 @@ function AppContent() {
   const location = useLocation();
 
   // =====================================================
+  // SCROLL TO TOP ON EVERY PAGE CHANGE
+  // =====================================================
+
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "auto",
+    });
+  }, [location.pathname]);
+
+  // =====================================================
   // SEARCH STATE
   // =====================================================
 
@@ -38,8 +50,7 @@ function AppContent() {
   // CATEGORY STATE
   // =====================================================
 
-  const [selectedCategory, setSelectedCategory] =
-    useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
 
   // =====================================================
   // ADMIN PAGES
@@ -58,10 +69,7 @@ function AppContent() {
   return (
     <div className="min-h-screen flex flex-col">
 
-      {/* =================================================
-          STORE NAVBAR
-      ================================================= */}
-
+      {/* STORE NAVBAR */}
       {!isAdminPage && (
         <StoreNavbar
           search={search}
@@ -71,16 +79,11 @@ function AppContent() {
         />
       )}
 
-      {/* =================================================
-          MAIN CONTENT
-      ================================================= */}
-
+      {/* MAIN CONTENT */}
       <main className="flex-1">
         <Routes>
 
-          {/* =================================================
-              STORE PAGES
-          ================================================= */}
+          {/* STORE PAGES */}
 
           <Route
             path="/"
@@ -93,100 +96,59 @@ function AppContent() {
             }
           />
 
-          {/* =================================================
-              PRODUCT DETAILS
-          ================================================= */}
-
           <Route
             path="/product/:id"
             element={<ProductDetails />}
           />
-
-          {/* =================================================
-              PRODUCT REVIEWS
-          ================================================= */}
 
           <Route
             path="/product/:id/reviews"
             element={<Reviews />}
           />
 
-          {/* =================================================
-              CART
-          ================================================= */}
-
           <Route
             path="/cart"
             element={<Cart />}
           />
-
-          {/* =================================================
-              CHECKOUT
-          ================================================= */}
 
           <Route
             path="/checkout"
             element={<Checkout />}
           />
 
-          {/* =================================================
-              ORDER SUCCESS
-          ================================================= */}
-
           <Route
             path="/order-success"
             element={<OrderSuccess />}
           />
-
-          {/* =================================================
-              CUSTOMER ORDERS
-              No Edit / Delete
-          ================================================= */}
 
           <Route
             path="/orders"
             element={<Orders />}
           />
 
-          {/* =================================================
-              ABOUT
-          ================================================= */}
-
           <Route
             path="/about"
             element={<About />}
           />
-
-          {/* =================================================
-              CONTACT
-          ================================================= */}
 
           <Route
             path="/contact"
             element={<Contact />}
           />
 
-          {/* =================================================
-              DEALS
-          ================================================= */}
-
           <Route
             path="/deals"
             element={<Deals />}
           />
 
-          {/* =================================================
-              ADMIN LOGIN
-          ================================================= */}
+          {/* ADMIN LOGIN */}
 
           <Route
             path="/admin"
             element={<AdminLogin />}
           />
 
-          {/* =================================================
-              ADMIN DASHBOARD
-          ================================================= */}
+          {/* ADMIN DASHBOARD */}
 
           <Route
             path="/dashboard"
@@ -197,9 +159,7 @@ function AppContent() {
             }
           />
 
-          {/* =================================================
-              ADMIN ALL PRODUCTS
-          ================================================= */}
+          {/* ADMIN ALL PRODUCTS */}
 
           <Route
             path="/AllProducts"
@@ -219,9 +179,7 @@ function AppContent() {
             }
           />
 
-          {/* =================================================
-              ADMIN ADD PRODUCT
-          ================================================= */}
+          {/* ADMIN ADD PRODUCT */}
 
           <Route
             path="/AddProduct"
@@ -241,10 +199,7 @@ function AppContent() {
             }
           />
 
-          {/* =================================================
-              ADMIN ORDERS
-              Edit / Delete only here
-          ================================================= */}
+          {/* ADMIN ORDERS */}
 
           <Route
             path="/admin-orders"
@@ -258,10 +213,7 @@ function AppContent() {
         </Routes>
       </main>
 
-      {/* =================================================
-          STORE FOOTER
-      ================================================= */}
-
+      {/* STORE FOOTER */}
       {!isAdminPage && <Footer />}
 
     </div>
